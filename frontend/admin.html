@@ -1,0 +1,1823 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- PREVENT "FOUC" (Flash of Unstyled Content) by adding the class before body parses -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark-mode') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+    <script src="js/offline-mock.js"></script>
+    <script src="security.js"></script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fa;
+            color: #1a202c;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Layout Container */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: #f8fafc;
+            color: #3b82f6;
+        }
+
+        .menu-item.active {
+            background: #eff6ff;
+            color: #3b82f6;
+            border-left-color: #3b82f6;
+        }
+
+        .menu-item span {
+            font-size: 18px;
+        }
+
+        /* Main Content wrapper */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            position: relative;
+        }
+
+        .section {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Existing Styles Restored */
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        td.actions {
+            display: table-cell !important;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        td.actions button {
+            margin-right: 8px;
+            display: inline-flex;
+        }
+
+        td.actions button:last-child {
+            margin-right: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideIn 0.3s forwards;
+        }
+
+        .notification.error {
+            background: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        /* ===== LOADER ===== */
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== GLOBAL DARK THEME (For index/admin) ===== */
+        .dark-mode {
+            background: #111827;
+            color: #f3f4f6;
+        }
+
+        .dark-mode .header,
+        .dark-mode .sidebar {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .dark-mode .header-title,
+        .dark-mode .page-title,
+        .dark-mode .header-center-text,
+        .dark-mode .empty-state h3,
+        .dark-mode .modal-header h2 {
+            color: #f3f4f6;
+        }
+
+        .dark-mode .modal-content,
+        .dark-mode .empty-state,
+        .dark-mode .stat-card,
+        .dark-mode .section-card,
+        .dark-mode th,
+        .dark-mode td,
+        .dark-mode .header-right .btn-secondary {
+            background-color: #1f2937;
+            border-color: #374151;
+            color: #f3f4f6;
+        }
+
+        .dark-mode #bulkActionsBar {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        .dark-mode #bulkActionsBar .text-blue-800 {
+            color: #93c5fd;
+        }
+
+        .dark-mode th {
+            background-color: #374151;
+        }
+
+        .dark-mode .search-box input,
+        .dark-mode .form-group input,
+        .dark-mode .form-group textarea,
+        .dark-mode .form-group select,
+        .dark-mode select.border.p-2 {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f3f4f6;
+        }
+
+        .dark-mode .menu-btn,
+        .dark-mode .sidebar .menu-item,
+        .dark-mode .form-group label {
+            color: #f3f4f6;
+        }
+
+        .dark-mode .sidebar .menu-item:hover,
+        .dark-mode .sidebar .menu-item.active {
+            background: #374151;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                height: 100%;
+                z-index: 200;
+            }
+
+            .sidebar.active {
+                transform: translateX(260px);
+            }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 150;
+            }
+
+            .mobile-overlay.active {
+                display: block;
+            }
+        }
+
+        /* Video & Resource Management Modals Table column optimization */
+        #videoManagementModal table, #resourceManagementModal table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        #videoManagementModal td, #resourceManagementModal td {
+            word-break: break-all;
+            white-space: normal;
+        }
+        #videoManagementModal th:nth-child(1), #videoManagementModal td:nth-child(1) { width: 60px; }
+        #videoManagementModal th:nth-child(2), #videoManagementModal td:nth-child(2) { width: 35%; }
+        #videoManagementModal th:nth-child(3), #videoManagementModal td:nth-child(3) { width: 45%; }
+        #videoManagementModal th:nth-child(4), #videoManagementModal td:nth-child(4) { width: 130px; }
+
+        #resourceManagementModal th:nth-child(1), #resourceManagementModal td:nth-child(1) { width: 60px; }
+        #resourceManagementModal th:nth-child(2), #resourceManagementModal td:nth-child(2) { width: 50%; }
+        #resourceManagementModal th:nth-child(3), #resourceManagementModal td:nth-child(3) { width: 20%; }
+        #resourceManagementModal th:nth-child(4), #resourceManagementModal td:nth-child(4) { width: 90px; }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="header">
+        <div class="header-title">
+            <button id="menuToggle" class="btn btn-secondary md:hidden">☰</button>
+            <span>⚙️ LMS Admin Panel</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button class="btn btn-secondary" onclick="window.location.href='index.html'">View Site</button>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div id="mobileOverlay" class="mobile-overlay" onclick="toggleSidebar()"></div>
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-menu">
+                <div class="menu-item active" onclick="switchTab('semesters')"><span>🎓</span> Semesters</div>
+                <div class="menu-item" onclick="switchTab('chapters')"><span>📚</span> Chapters & Units</div>
+                <div class="menu-item" onclick="switchTab('users')"><span>👥</span> Users</div>
+                <div class="menu-item" onclick="switchTab('requests')"><span>🔔</span> Login Requests <span
+                        id="requestsBadge"
+                        style="display:none; background:#ef4444; color:white; border-radius:50%; padding:2px 6px; font-size:11px; margin-left:auto;">0</span>
+                </div>
+            </div>
+            <div style="padding: 20px;">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="darkModeToggle" class="hidden">
+                    <div
+                        class="w-10 h-5 bg-gray-300 rounded-full relative transition-colors duration-200 ease-linear peer-checked:bg-blue-600">
+                        <div id="toggleDot"
+                            class="absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform duration-200 ease-linear">
+                        </div>
+                    </div>
+                    <span class="text-sm font-medium">Dark Mode</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- SEMESTERS -->
+            <div id="semestersSection" class="section active">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Manage Semesters</h2>
+                        <button class="btn btn-primary" onclick="openSemesterModal()">+ Add Semester</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Thumbnail</th>
+                                    <th>Name</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="semestersBody">
+                                <tr>
+                                    <td colspan="5" class="empty-state">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAPTERS & UNITS -->
+            <div id="chaptersSection" class="section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Chapters (Subjects)</h2>
+                        <div class="flex gap-2">
+                            <select id="filterChapterSemester" class="border p-2 rounded text-sm"
+                                onchange="loadChapters()">
+                                <option value="">All Semesters</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="openChapterModal()">+ Add Chapter</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div id="bulkActionsBar"
+                            class="p-4 bg-blue-50 dark:bg-slate-800 border-b border-blue-100 dark:border-slate-700 items-center justify-between hidden">
+                            <div class="text-sm font-medium text-blue-800 dark:text-blue-300">
+                                <span id="selectedCount" class="font-bold">0</span> chapters selected
+                            </div>
+                            <div class="flex gap-3">
+                                <select id="bulkSemesterSelect"
+                                    class="border p-2 rounded text-sm bg-white dark:bg-slate-900 min-w-[180px]">
+                                    <option value="">Assign to Semester...</option>
+                                </select>
+                                <button class="btn btn-primary" onclick="applyBulkSemester()">Apply Bulk</button>
+                                <button class="btn btn-secondary" onclick="clearSelection()">Cancel</button>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllChapters"
+                                            onchange="toggleSelectAllChapters(this)"></th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Semester</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chaptersBody">
+                                <tr>
+                                    <td colspan="5" class="empty-state">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    <!-- Units Column (2/3 width) -->
+                    <div class="lg:col-span-2 section-card mb-0">
+                        <div class="section-header">
+                            <h2 class="section-title">Units for Chapter</h2>
+                            <div class="flex gap-2">
+                                <select id="filterUnitSemester" class="border p-2 rounded text-sm"
+                                    onchange="populateChapterSelect()">
+                                    <option value="">All Semesters</option>
+                                </select>
+                                <select id="chapterSelect" class="border p-2 rounded" onchange="loadUnits()">
+                                    <option value="">Select a chapter...</option>
+                                </select>
+                                <button class="btn btn-primary" id="addUnitBtn" disabled onclick="openUnitModal()">+ Add
+                                    Unit</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Order</th>
+                                        <th>Videos</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="unitsBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-state">Select a chapter above</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Subject PDFs Column (1/3 width) -->
+                    <div class="lg:col-span-1 section-card mb-0">
+                        <div class="section-header">
+                            <h2 class="section-title">Subject PDFs</h2>
+                            <button class="btn btn-primary text-xs py-1 px-2" id="addChapterPdfBtn" disabled onclick="openChapterPdfModal()">+ Add PDF</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="chapterPdfsBody">
+                                    <tr>
+                                        <td colspan="2" class="empty-state">Select a chapter above</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS -->
+            <div id="usersSection" class="section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">Manage Users</h2>
+                        <button class="btn btn-primary" onclick="openUserModal()">+ Add User</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Allowed Semesters</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersBody">
+                                <tr>
+                                    <td colspan="5" class="empty-state">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REQUESTS -->
+            <div id="requestsSection" class="section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">🔔 Pending Login Requests</h2>
+                        <button class="btn btn-secondary" onclick="loadLoginRequests()">↻ Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Name</th>
+                                    <th>Requested At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loginRequestsBody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">No pending requests</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Semester Modal -->
+    <div id="semesterModal" class="modal">
+        <div class="modal-content">
+            <h2 id="semesterModalTitle" class="text-xl font-bold mb-4">Add Semester</h2>
+            <form onsubmit="saveSemester(event)">
+                <input type="hidden" id="semesterModalId">
+                <div class="form-group">
+                    <label>Semester Name *</label>
+                    <input type="text" id="semesterName" required placeholder="e.g. Semester 1">
+                </div>
+                <div class="form-group">
+                    <label>Thumbnail Image</label>
+                    <input type="file" id="semesterThumbnailInput" accept="image/*" onchange="previewThumbnail(event)">
+                    <input type="hidden" id="semesterThumbnailBase64">
+                    <div class="mt-2 text-center">
+                        <img id="semesterThumbnailPreview" src="" class="max-h-32 mx-auto rounded hidden border">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" class="btn btn-secondary" onclick="closeSemesterModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chapter Modal -->
+    <div id="chapterModal" class="modal">
+        <div class="modal-content">
+            <h2 id="chapterModalTitle" class="text-xl font-bold mb-4">Add Chapter</h2>
+            <form onsubmit="saveChapter(event)">
+                <input type="hidden" id="originalChapterId">
+                <div class="form-group">
+                    <label>Chapter ID (Position) *</label>
+                    <input type="number" id="chapterId" required placeholder="e.g. 1">
+                </div>
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" id="chapterName" required placeholder="e.g. ACCOUNTS">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="chapterDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Assigned Semester</label>
+                    <select id="chapterSemester">
+                        <option value="">
+                            <div class="loader"></div>
+                        </option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" class="btn btn-secondary" onclick="closeChapterModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Unit Modal -->
+    <div id="unitModal" class="modal">
+        <div class="modal-content">
+            <h2 id="unitModalTitle" class="text-xl font-bold mb-4">Add Unit</h2>
+            <form onsubmit="saveUnit(event)">
+                <input type="hidden" id="unitId">
+                <input type="hidden" id="unitChapterId">
+                <div class="form-group">
+                    <label>Unit Name *</label>
+                    <input type="text" id="unitName" required>
+                </div>
+                <div class="form-group">
+                    <label>Order Index</label>
+                    <input type="number" id="unitOrder" value="0">
+                </div>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" class="btn btn-secondary" onclick="closeUnitModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h2 id="userModalTitle" class="text-xl font-bold mb-4">Add User</h2>
+            <form onsubmit="saveUser(event)">
+                <input type="hidden" id="userDbId">
+                <div class="form-group">
+                    <label>User ID *</label>
+                    <input type="text" id="userIdField" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="userRole">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="userPassword">
+                </div>
+                <div class="form-group">
+                    <label>Allowed Semesters</label>
+                    <div id="userAllowedSemestersContainer" class="p-2 border rounded max-h-32 overflow-y-auto">
+                        Loading semesters...
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Videos Modal -->
+    <div id="videoManagementModal" class="modal">
+        <div class="modal-content !max-w-2xl">
+            <h2 id="videoManagementTitle" class="text-xl font-bold mb-4">Manage Videos</h2>
+            <button class="btn btn-primary mb-4" onclick="openVideoModal()">+ Add Video</button>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Title</th>
+                            <th>URL</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="videosTableBody"></tbody>
+                </table>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button class="btn btn-secondary" onclick="closeVideoManagementModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="modal">
+        <div class="modal-content" style="max-width: 450px; aspect-ratio: 1 / 1; display: flex; flex-direction: column; justify-content: space-between;">
+            <h2 id="videoModalTitle" class="text-xl font-bold mb-2">Add Video</h2>
+            <form onsubmit="saveVideo(event)" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <input type="hidden" id="videoId">
+                <input type="hidden" id="videoUnitId">
+                <div>
+                    <div class="form-group"><label>Title *</label><input type="text" id="videoTitle" required></div>
+                    <div class="form-group"><label>YouTube URL *</label><input type="url" id="videoYoutubeUrl" required></div>
+                    <div class="form-group"><label>Order Index</label><input type="number" id="videoOrder" value="0"></div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="closeVideoModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Resources Modal -->
+    <div id="resourceManagementModal" class="modal">
+        <div class="modal-content !max-w-2xl">
+            <h2 id="resourceManagementTitle" class="text-xl font-bold mb-4">Manage Resources</h2>
+            <button class="btn btn-primary mb-4" onclick="openResourceModal()">+ Add Resource</button>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resourcesTableBody"></tbody>
+                </table>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button class="btn btn-secondary" onclick="closeResourceManagementModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Modal -->
+    <div id="resourceModal" class="modal">
+        <div class="modal-content" style="max-width: 460px; aspect-ratio: 1 / 1; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; overflow: visible !important;">
+            <h2 id="resourceModalTitle" class="text-xl font-bold mb-2">Add Resource</h2>
+            <form onsubmit="saveResource(event)" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; overflow: visible;">
+                <input type="hidden" id="resourceId">
+                <input type="hidden" id="resourceUnitId">
+                <input type="hidden" id="resourceChapterId">
+                <div>
+                    <div class="form-group"><label>Title *</label><input type="text" id="resourceTitle" required></div>
+                    <div class="form-group"><label>URL *</label><input type="url" id="resourceUrl" required></div>
+                    <div class="form-group"><label>Type</label>
+                        <select id="resourceType">
+                            <option value="link">Link 🔗</option>
+                            <option value="pdf">PDF 📄</option>
+                            <option value="document">Document 📝</option>
+                            <option value="other">Other 📎</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;"><label>Order Index</label><input type="number" id="resourceOrder" value="0"></div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="closeResourceModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script type="module" src="/insforge-client.js"></script>
+    <script type="module">
+        // Auth check
+        const userStr = localStorage.getItem('user');
+        if (!userStr || JSON.parse(userStr).role !== 'admin') {
+            window.location.href = userStr ? 'index.html' : 'login.html';
+        }
+
+        window.logout = () => {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        };
+
+
+        // Layout Tabs
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+
+            const target = document.getElementById(tabId + 'Section');
+            if (target) target.classList.add('active');
+
+            // Highlight menu item
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (item.innerText.toLowerCase().includes(tabId.substring(0, 4))) item.classList.add('active');
+            });
+
+            if (tabId === 'semesters') loadSemesters();
+            if (tabId === 'chapters') { loadChapters(); loadSemesters(); }
+            if (tabId === 'users') { loadUsers(); loadSemesters(); }
+            if (tabId === 'requests') loadLoginRequests();
+
+            if (window.innerWidth <= 768) toggleSidebar();
+        };
+
+        async function waitForInsForge() {
+            let attempts = 0;
+            while (!window.insforge && attempts < 150) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+            if (!window.insforge) console.warn("InsForge SDK timeout");
+        }
+
+        window.toggleSidebar = () => {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('mobileOverlay').classList.toggle('active');
+        };
+
+        // SEMESTERS
+        let allSemesters = [];
+        let allChapters = [];
+        window.loadSemesters = async function () {
+            try {
+                await waitForInsForge();
+                if (!window.insforge) return;
+                const { data: sems, error } = await window.insforge.from('semesters').select('*');
+                if (error) throw error;
+                allSemesters = sems || [];
+                const tbody = document.getElementById('semestersBody');
+                if (!allSemesters.length) tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No semesters.</td></tr>';
+                else tbody.innerHTML = sems.map(s => `
+                    <tr>
+                        <td>${s.nid}</td>
+                        <td>${s.thumbnail ? `<img src="${s.thumbnail}" class="h-10 rounded">` : '-'}</td>
+                        <td class="font-bold">${escapeHtml(s.name)}</td>
+                        <td>${new Date(s.created_at).toLocaleDateString()}</td>
+                        <td class="actions">
+                            <button class="btn btn-secondary py-1 px-2 text-xs" onclick="openSemesterModal('${s.nid}')">Edit</button>
+                            <button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteSemester('${s.nid}')">Del</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                document.getElementById('semestersBody').innerHTML = `<tr><td colspan="5" class="empty-state text-red-500">Error: ${err.message}</td></tr>`;
+            }
+        };
+
+        window.openSemesterModal = (id = null) => {
+            document.getElementById('semesterModal').classList.add('active');
+            document.getElementById('semesterModalId').value = id || '';
+            const sem = allSemesters.find(s => s.nid == id);
+            document.getElementById('semesterName').value = id ? sem.name : '';
+            const preview = document.getElementById('semesterThumbnailPreview');
+            preview.src = id ? (sem.thumbnail || '') : '';
+            preview.style.display = preview.src.includes('base64') ? 'block' : 'none';
+        };
+        window.closeSemesterModal = () => document.getElementById('semesterModal').classList.remove('active');
+
+        window.previewThumbnail = (e) => {
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = (ev) => {
+                document.getElementById('semesterThumbnailBase64').value = ev.target.result;
+                const p = document.getElementById('semesterThumbnailPreview');
+                p.src = ev.target.result; p.style.display = 'block';
+            };
+            r.readAsDataURL(f);
+        };
+
+        window.saveSemester = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('semesterModalId').value;
+            const name = document.getElementById('semesterName').value;
+            const thumbnail = document.getElementById('semesterThumbnailBase64').value;
+            try {
+                await waitForInsForge();
+                const data = { name, thumbnail: thumbnail || null };
+                if (id) {
+                    await window.insforge.from('semesters').update(data).eq('nid', id);
+                } else {
+                    await window.insforge.from('semesters').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                }
+                showNotification('Saved'); closeSemesterModal(); loadSemesters();
+            } catch (ex) { showNotification(ex.message, true); }
+        };
+
+        window.deleteSemester = async (id) => {
+            if (!confirm('Delete?')) return;
+            await waitForInsForge();
+            const { error } = await window.insforge.from('semesters').delete().eq('nid', id);
+            if (error) showNotification(error.message, true);
+            else {
+                loadSemesters();
+            }
+        };
+
+        function populateSemesterDropdowns() {
+            try {
+                const chapterSemester = document.getElementById('chapterSemester');
+                const filterChapterSemester = document.getElementById('filterChapterSemester');
+                const filterUnitSemester = document.getElementById('filterUnitSemester');
+                const bulkSemesterSelect = document.getElementById('bulkSemesterSelect');
+                const userContainer = document.getElementById('userAllowedSemestersContainer');
+
+                const options = allSemesters.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+
+                if (bulkSemesterSelect) bulkSemesterSelect.innerHTML = '<option value="">Assign to Semester...</option>' + options;
+                if (chapterSemester) {
+                    const cur = chapterSemester.value;
+                    chapterSemester.innerHTML = '<option value="">Unassigned</option>' + options;
+                    chapterSemester.value = cur || '';
+                }
+                if (filterChapterSemester) {
+                    const cur = filterChapterSemester.value;
+                    filterChapterSemester.innerHTML = '<option value="">All Semesters</option>' + options;
+                    filterChapterSemester.value = cur || '';
+                }
+                if (filterUnitSemester) {
+                    const cur = filterUnitSemester.value;
+                    filterUnitSemester.innerHTML = '<option value="">All Semesters</option>' + options;
+                    filterUnitSemester.value = cur || '';
+                }
+                if (userContainer) {
+                    userContainer.innerHTML = allSemesters.map(s => `
+                        <label class="flex items-center gap-2 mb-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 p-1 rounded">
+                            <input type="checkbox" class="semester-chk" value="${escapeHtml(s.name)}"> ${escapeHtml(s.name)}
+                        </label>
+                    `).join('');
+                }
+            } catch (e) { console.error("Error populating dropdowns:", e); }
+        }
+
+        // CHAPTERS
+        window.loadChapters = async () => {
+            try {
+                await waitForInsForge();
+                const { data: chapters, error } = await window.insforge.from('chapters').select('*');
+                if (error) throw error;
+                allChapters = chapters || [];
+
+                const filterValue = document.getElementById('filterChapterSemester').value;
+                const filteredChapters = filterValue ? allChapters.filter(c => c.semester === filterValue) : allChapters;
+
+                const tbody = document.getElementById('chaptersBody');
+                tbody.innerHTML = filteredChapters.map(c => `
+                    <tr data-id="${c.nid}" class="chapter-row">
+                        <td><input type="checkbox" class="chapter-chk" value="${c.nid}" onchange="updateBulkUI()"></td>
+                        <td>${c.nid}</td>
+                        <td class="font-bold">${escapeHtml(c.name)}</td>
+                        <td>${escapeHtml(c.description || '-')}</td>
+                        <td>${escapeHtml(c.semester || '-')}</td>
+                        <td class="actions">
+                            <button class="btn btn-secondary py-1 px-2 text-xs" onclick="editChapter('${c.nid}')">Edit</button>
+                            <button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteChapter('${c.nid}')">Del</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                const selectAll = document.getElementById('selectAllChapters');
+                if (selectAll) selectAll.checked = false;
+                updateBulkUI();
+                populateChapterSelect();
+            } catch (err) { console.error('Error loading chapters:', err); }
+        };
+
+        window.toggleSelectAllChapters = (master) => {
+            document.querySelectorAll('.chapter-chk').forEach(c => c.checked = master.checked);
+            updateBulkUI();
+        };
+
+        window.updateBulkUI = () => {
+            const selected = Array.from(document.querySelectorAll('.chapter-chk:checked'));
+            const bar = document.getElementById('bulkActionsBar');
+            const count = document.getElementById('selectedCount');
+
+            if (selected.length > 0) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+                count.innerText = selected.length;
+            } else {
+                bar.classList.remove('flex');
+                bar.classList.add('hidden');
+            }
+        };
+
+        window.clearSelection = () => {
+            document.getElementById('selectAllChapters').checked = false;
+            document.querySelectorAll('.chapter-chk').forEach(c => c.checked = false);
+            updateBulkUI();
+        };
+
+        window.applyBulkSemester = async () => {
+            const semester = document.getElementById('bulkSemesterSelect').value;
+            if (!semester) return showNotification('Select a semester first!', true);
+
+            const ids = Array.from(document.querySelectorAll('.chapter-chk:checked')).map(c => c.value);
+            if (!ids.length) return;
+
+            if (!confirm(`Assign ${ids.length} chapters to "${semester}"?`)) return;
+
+            try {
+                await waitForInsForge();
+                for (const id of ids) {
+                    const { error } = await window.insforge.from('chapters').update({ semester: semester }).eq('nid', id);
+                    if (error) throw error;
+                }
+                showNotification(`Assigned ${ids.length} chapters`);
+                clearSelection();
+                loadChapters();
+            } catch (err) {
+                showNotification('Error: ' + err.message, true);
+            }
+        };
+
+        window.populateChapterSelect = () => {
+            const sel = document.getElementById('chapterSelect');
+            if (!sel) return;
+
+            const filterValue = document.getElementById('filterUnitSemester').value;
+            const filteredChapters = filterValue ? allChapters.filter(c => c.semester === filterValue) : allChapters;
+
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">Select a chapter...</option>' + filteredChapters.map(c => `<option value="${c.nid}">${c.name}${filterValue ? '' : ` (${c.semester || 'No Sem'})`}</option>`).join('');
+            if (cur) sel.value = cur;
+            loadUnits();
+        };
+
+        window.openChapterModal = (id = null) => {
+            document.getElementById('chapterModal').classList.add('active');
+            document.getElementById('originalChapterId').value = id || '';
+            document.getElementById('chapterId').value = id || '';
+            document.getElementById('chapterName').value = '';
+            document.getElementById('chapterDescription').value = '';
+
+            if (!id) {
+                // Smart pre-fill: Ensure dropdown is populated first
+                populateSemesterDropdowns();
+                const filterVal = document.getElementById('filterChapterSemester').value;
+                if (filterVal) {
+                    document.getElementById('chapterSemester').value = filterVal;
+                } else {
+                    document.getElementById('chapterSemester').value = '';
+                }
+            }
+        };
+        window.closeChapterModal = () => document.getElementById('chapterModal').classList.remove('active');
+
+        window.editChapter = async (id) => {
+            try {
+                await waitForInsForge();
+                const { data: c, error } = await window.insforge.from('chapters').select('*').eq('nid', id).maybeSingle();
+                if (error || !c) throw new Error(error ? error.message : 'Chapter not found');
+                openChapterModal(id);
+                document.getElementById('chapterName').value = c.name;
+                document.getElementById('chapterDescription').value = c.description || '';
+                document.getElementById('chapterSemester').value = c.semester || '';
+            } catch (err) { showNotification(err.message, true); }
+        };
+
+        window.saveChapter = async (e) => {
+            e.preventDefault();
+            const orig = document.getElementById('originalChapterId').value;
+            const chapterIdValue = document.getElementById('chapterId').value;
+            const data = {
+                name: document.getElementById('chapterName').value,
+                description: document.getElementById('chapterDescription').value,
+                semester: document.getElementById('chapterSemester').value
+            };
+            try {
+                await waitForInsForge();
+                if (orig) {
+                    await window.insforge.from('chapters').update(data).eq('nid', Number(orig));
+                } else {
+                    await window.insforge.from('chapters').insert({ ...data, nid: Number(chapterIdValue) });
+                }
+                closeChapterModal(); loadChapters();
+                showNotification('Subject saved!');
+            } catch (err) { showNotification(err.message, true); }
+        };
+
+        window.deleteChapter = async (id) => {
+            if (confirm('Delete subject and all its units?')) {
+                await waitForInsForge();
+                await window.insforge.from('chapters').delete().eq('nid', id);
+                loadChapters();
+            }
+        };
+
+        window.loadUnits = async () => {
+            const cid = document.getElementById('chapterSelect').value;
+            const addBtn = document.getElementById('addUnitBtn');
+            const tbody = document.getElementById('unitsBody');
+            if (!cid) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Select chapter</td></tr>';
+                addBtn.disabled = true;
+                if (window.loadChapterPdfs) window.loadChapterPdfs();
+                return;
+            }
+            addBtn.disabled = false;
+
+            try {
+                await waitForInsForge();
+                const { data: units, error } = await window.insforge.from('units').select('*').eq('chapter_id', Number(cid)).order('order_index', { ascending: true });
+                if (error) throw error;
+
+                // Get video counts from SDK
+                const unitsWithCounts = await Promise.all(units.map(async u => {
+                    const { data: vids } = await window.insforge.from('videos').select('nid', { count: 'exact' }).eq('unit_id', Number(u.nid));
+                    return { ...u, vCount: vids ? vids.length : 0 };
+                }));
+
+                tbody.innerHTML = unitsWithCounts.map(u => `
+                    <tr>
+                        <td>${u.nid}</td>
+                        <td class="font-bold">${escapeHtml(u.name)}</td>
+                        <td>${u.order_index}</td>
+                        <td>${u.vCount} video</td>
+                        <td class="actions">
+                            <button class="btn btn-primary py-1 px-2 text-xs" onclick="openVideoManagementModal('${u.nid}', '${escapeJsArg(u.name)}')">Video</button>
+                            <button class="btn btn-primary py-1 px-2 text-xs" onclick="openResourceManagementModal('${u.nid}', '${escapeJsArg(u.name)}')">Docs</button>
+                            <button class="btn btn-secondary py-1 px-2 text-xs" onclick="editUnit('${u.nid}')">Edit</button>
+                            <button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteUnit('${u.nid}')">Del</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                if (window.loadChapterPdfs) window.loadChapterPdfs();
+            } catch (err) { console.error('Error loading units:', err); }
+        };
+
+        window.openUnitModal = (id = null) => {
+            document.getElementById('unitModal').classList.add('active');
+            document.getElementById('unitId').value = id || '';
+            document.getElementById('unitChapterId').value = document.getElementById('chapterSelect').value;
+            document.getElementById('unitName').value = '';
+        };
+        window.closeUnitModal = () => document.getElementById('unitModal').classList.remove('active');
+
+        window.editUnit = async (id) => {
+            try {
+                await waitForInsForge();
+                const { data: u, error } = await window.insforge.from('units').select('*').eq('nid', id).maybeSingle();
+                if (error || !u) throw new Error(error ? error.message : 'Unit not found');
+
+                openUnitModal(id);
+                document.getElementById('unitName').value = u.name;
+                document.getElementById('unitOrder').value = u.order_index;
+            } catch (err) { showNotification(err.message, true); }
+        };
+
+        window.saveUnit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('unitId').value;
+            const data = {
+                chapter_id: Number(document.getElementById('unitChapterId').value),
+                name: document.getElementById('unitName').value,
+                order_index: Number(document.getElementById('unitOrder').value)
+            };
+            try {
+                await waitForInsForge();
+                if (id) {
+                    await window.insforge.from('units').update(data).eq('nid', Number(id));
+                } else {
+                    await window.insforge.from('units').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                }
+                closeUnitModal(); loadUnits();
+                showNotification('Unit saved!');
+            } catch (err) { showNotification(err.message, true); }
+        };
+
+        window.deleteUnit = async (id) => {
+            if (confirm('Delete unit and all its content?')) {
+                await waitForInsForge();
+                await window.insforge.from('units').delete().eq('nid', id);
+                loadUnits();
+            }
+        };
+
+        // USERS
+        window.loadUsers = async () => {
+            try {
+                await waitForInsForge();
+                const { data: users, error } = await window.insforge.from('app_users').select('*');
+                if (error) throw error;
+                window._users_cache = users;
+                const tbody = document.getElementById('usersBody');
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td><strong>${u.user_id}</strong></td>
+                        <td>${escapeHtml(u.name)}</td>
+                        <td><span class="px-2 py-1 rounded bg-gray-100 text-xs">${u.role}</span></td>
+                        <td>${escapeHtml(u.allowed_semesters || '-')}</td>
+                        <td class="actions">
+                            <button class="btn btn-secondary py-1 px-2 text-xs" onclick="editUser('${u.nid}')">Edit</button>
+                            ${u.user_id !== 'admin' ? `<button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteUser('${u.nid}', '${escapeJsArg(u.user_id)}')">Del</button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) { console.error('Error loading users:', err); }
+        };
+
+        // editUser is called from inline onclick in the users table
+        window.editUser = (id) => openUserModal(id);
+
+        window.openUserModal = (id = null) => {
+            document.getElementById('userModal').classList.add('active');
+            document.getElementById('userDbId').value = id || '';
+            document.getElementById('userIdField').value = '';
+            document.getElementById('userName').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userRole').value = 'user';
+
+            // Always repopulate checkboxes first so they exist in the DOM
+            populateSemesterDropdowns();
+
+            // Now reset all checkboxes
+            document.querySelectorAll('.semester-chk').forEach(c => c.checked = false);
+
+            if (id) {
+                const u = window._users_cache.find(usr => usr.nid == id);
+                if (!u) return;
+                document.getElementById('userIdField').value = u.user_id;
+                document.getElementById('userIdField').disabled = true;
+                document.getElementById('userName').value = u.name;
+                document.getElementById('userRole').value = u.role;
+                if (u.allowed_semesters) {
+                    const sems = u.allowed_semesters.split(',').map(s => s.trim());
+                    document.querySelectorAll('.semester-chk').forEach(c => { if (sems.includes(c.value)) c.checked = true; });
+                }
+            } else {
+                document.getElementById('userIdField').disabled = false;
+            }
+        };
+        window.closeUserModal = () => document.getElementById('userModal').classList.remove('active');
+
+        window.saveUser = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('userDbId').value;
+            const sems = Array.from(document.querySelectorAll('.semester-chk:checked')).map(c => c.value).join(', ');
+
+            const name = document.getElementById('userName').value.trim();
+            const role = document.getElementById('userRole').value;
+            const pw = document.getElementById('userPassword').value;
+            const userId = document.getElementById('userIdField').value.trim();
+
+            if (!name) return showNotification('Name is required', true);
+
+            const data = {
+                name: name,
+                role: role,
+                allowed_semesters: sems
+            };
+
+            if (pw) data.password = pw;
+
+            if (!id) {
+                // For NEW users, user_id and password are REQUIRED by the schema
+                if (!userId) return showNotification('User ID is required for new users', true);
+                if (!pw) return showNotification('Password is required for new users', true);
+                data.user_id = userId;
+            }
+
+            try {
+                await waitForInsForge();
+
+                // Use the RPC for both INSERT and UPDATE to handle password hashing
+                const { data: res, error } = await window.insforge.rpc('save_user', {
+                    p_nid: id ? Number(id) : Math.floor(Date.now() / 1000),
+                    p_user_id: userId,
+                    p_name: name,
+                    p_role: role,
+                    p_password: pw || null,
+                    p_allowed_semesters: sems
+                });
+
+                if (error) throw error;
+                if (res && res.success === false) throw new Error(res.message);
+
+                closeUserModal();
+                loadUsers();
+                showNotification('User saved successfully!');
+            } catch (err) {
+                console.error('Error saving user:', err);
+                showNotification(err.message, true);
+            }
+        };
+
+        window.deleteUser = async (id, uid) => {
+            if (confirm(`Delete ${uid}?`)) {
+                await waitForInsForge();
+                await window.insforge.from('app_users').delete().eq('nid', Number(id));
+                loadUsers();
+            }
+        };
+
+        // REQUESTS
+        window.loadLoginRequests = async () => {
+            try {
+                await waitForInsForge();
+                if (!window.insforge) return;
+                const { data: reqs, error } = await window.insforge.from('login_requests').select('*');
+                if (error) throw error;
+                const tbody = document.getElementById('loginRequestsBody');
+                const badge = document.getElementById('requestsBadge');
+                if (!reqs.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No pending requests</td></tr>'; if (badge) badge.style.display = 'none'; }
+                else {
+                    if (badge) { badge.textContent = reqs.length; badge.style.display = 'block'; }
+                    tbody.innerHTML = reqs.map(r => `
+                        <tr>
+                            <td>${escapeHtml(r.user_id)}</td><td>${escapeHtml(r.user_name || '-')}</td><td>${new Date(r.requested_at).toLocaleString()}</td>
+                            <td class="actions">
+                                <button class="btn btn-success py-1 px-2 text-xs" onclick="approveRequest('${r.nid}')">Approve</button>
+                                <button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteRequest('${r.nid}')">Reject</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) { console.error('Error loading requests:', err); }
+        };
+        window.approveRequest = async (id) => {
+            try {
+                await waitForInsForge();
+                const { data: r, error: gErr } = await window.insforge.from('login_requests').select('*').eq('nid', Number(id)).maybeSingle();
+                if (gErr || !r) throw new Error(gErr ? gErr.message : 'Request not found');
+                // 2. Create user via RPC for secure password hashing
+                const { data: res, error: rpcErr } = await window.insforge.rpc('save_user', {
+                    p_nid: Math.floor(Date.now() / 1000),
+                    p_user_id: r.user_id,
+                    p_name: r.user_name || r.user_id,
+                    p_role: 'user',
+                    p_password: '123', // Default password for approved users
+                    p_allowed_semesters: ''
+                });
+
+                if (rpcErr) throw rpcErr;
+                if (res && res.success === false) throw new Error(res.message);
+
+                // 3. Delete request
+                await window.insforge.from('login_requests').delete().eq('nid', Number(id));
+
+                loadLoginRequests();
+                showNotification('User approved!');
+            } catch (err) { showNotification(err.message, true); }
+        };
+        window.deleteRequest = async (id) => {
+            if (confirm('Reject this request?')) {
+                try {
+                    await waitForInsForge();
+                    await window.insforge.from('login_requests').delete().eq('nid', Number(id));
+                    loadLoginRequests();
+                    showNotification('Request rejected');
+                } catch (err) { showNotification(err.message, true); }
+            }
+        };
+
+        // UTILS
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        function escapeJsArg(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")    // Escapes single quotes for JS
+                .replace(/"/g, "&quot;")  // HTML encode double quote
+                .replace(/\n/g, "\\n")
+                .replace(/\r/g, "\\r");
+        }
+        window.showNotification = (msg, isErr = false) => {
+            const n = document.createElement('div'); n.className = 'notification' + (isErr ? ' error' : ''); n.innerText = msg; n.style.backgroundColor = isErr ? '#ef4444' : '#10b981';
+            document.body.appendChild(n); setTimeout(() => n.remove(), 2500);
+        };
+
+        // Dark Mode Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('darkModeToggle');
+            const dot = document.getElementById('toggleDot');
+
+            // Sync toggle state with current theme (applied by the <head> script)
+            if (localStorage.getItem('theme') === 'dark-mode') {
+                document.body.classList.add('dark-mode');
+                toggle.checked = true;
+                dot.style.transform = 'translateX(20px)';
+            }
+
+            toggle.addEventListener('change', () => {
+                if (toggle.checked) {
+                    document.documentElement.classList.add('dark-mode');
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark-mode');
+                    dot.style.transform = 'translateX(20px)';
+                } else {
+                    document.documentElement.classList.remove('dark-mode');
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light-mode');
+                    dot.style.transform = 'translateX(0)';
+                }
+            });
+
+            // Initial Load
+            loadSemesters().then(() => {
+                populateSemesterDropdowns();
+            });
+            loadLoginRequests();
+        });
+
+        // Placeholder Video/Resource modal handlers
+        let currentUnitIdVal = null;
+        window.openVideoManagementModal = (id, name) => { currentUnitIdVal = id; document.getElementById('videoManagementTitle').innerText = 'Videos: ' + name; document.getElementById('videoManagementModal').style.display = 'flex'; loadVideos(); };
+        window.closeVideoManagementModal = () => { document.getElementById('videoManagementModal').style.display = 'none'; loadUnits(); };
+        let _allCurrentVideos = [];
+        window.loadVideos = async () => {
+            try {
+                await waitForInsForge();
+                const { data: vids, error } = await window.insforge.from('videos').select('*').eq('unit_id', Number(currentUnitIdVal)).order('order_index', { ascending: true });
+                if (error) throw error;
+                _allCurrentVideos = vids || [];
+                const tb = document.getElementById('videosTableBody');
+                if (!_allCurrentVideos.length) {
+                    tb.innerHTML = '<tr><td colspan="4" class="empty-state">No videos found</td></tr>';
+                } else {
+                    tb.innerHTML = _allCurrentVideos.map(v => `<tr><td>${v.order_index}</td><td>${escapeHtml(v.title)}</td><td>${escapeHtml(v.youtube_url)}</td><td class="actions"><button class="btn btn-secondary py-1 px-2 text-xs" onclick="editVideo('${v.nid}')">Edit</button><button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteVideo('${v.nid}')">Del</button></td></tr>`).join('');
+                }
+            } catch (err) { console.error('Error loading videos:', err); }
+        };
+        window.openVideoModal = (id = null) => {
+            document.getElementById('videoModal').style.display = 'flex';
+            document.getElementById('videoUnitId').value = currentUnitIdVal;
+            document.getElementById('videoId').value = id || '';
+
+            if (id) {
+                const vid = _allCurrentVideos.find(v => v.nid == id);
+                document.getElementById('videoTitle').value = vid.title || '';
+                document.getElementById('videoYoutubeUrl').value = vid.youtube_url || '';
+                document.getElementById('videoOrder').value = vid.order_index || 0;
+            } else {
+                document.getElementById('videoTitle').value = '';
+                document.getElementById('videoYoutubeUrl').value = '';
+                document.getElementById('videoOrder').value = 0;
+            }
+        };
+        window.editVideo = (id) => openVideoModal(id);
+        window.closeVideoModal = () => document.getElementById('videoModal').style.display = 'none';
+        window.saveVideo = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('videoId').value;
+            const data = {
+                unit_id: Number(document.getElementById('videoUnitId').value),
+                title: document.getElementById('videoTitle').value,
+                youtube_url: document.getElementById('videoYoutubeUrl').value,
+                order_index: document.getElementById('videoOrder').value
+            };
+            try {
+                await waitForInsForge();
+                if (id) {
+                    const { error } = await window.insforge.from('videos').update(data).eq('nid', Number(id));
+                    if (error) throw error;
+                    closeVideoModal(); loadVideos();
+                    showNotification('Video updated!');
+                } else {
+                    const { error } = await window.insforge.from('videos').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                    if (error) throw error;
+                    closeVideoModal(); loadVideos();
+                    showNotification('Video added!');
+
+                    // Push notification to all users via notifications table
+                    try {
+                        const unitLink = `unit.html?id=${data.unit_id}`;
+                        let semesterName = null;
+                        const { data: uData } = await window.insforge.from('units').select('chapter_id').eq('nid', Number(data.unit_id)).maybeSingle();
+                        if (uData && uData.chapter_id) {
+                            const { data: cData } = await window.insforge.from('chapters').select('semester').eq('nid', Number(uData.chapter_id)).maybeSingle();
+                            if (cData && cData.semester) {
+                                semesterName = cData.semester;
+                            }
+                        }
+                        await window.insforge.from('notifications').insert({
+                            message: `📺 New video added: "${escapeHtml(data.title)}"`,
+                            link: unitLink,
+                            semester: semesterName
+                        });
+                    } catch (nErr) { console.warn('Could not push notification:', nErr); }
+
+                    // Also fire a native browser notification if permission granted
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('📺 New Video Added!', {
+                            body: `"${data.title}" has been added.`,
+                            icon: '/favicon.ico'
+                        });
+                    }
+                }
+            } catch (err) { showNotification(err.message, true); }
+        };
+        window.deleteVideo = async (id) => {
+            if (confirm('Delete video?')) {
+                await waitForInsForge();
+                const { error } = await window.insforge.from('videos').delete().eq('nid', Number(id));
+                if (error) throw error;
+                loadVideos();
+            }
+        };
+
+        window.openResourceManagementModal = (id, name) => { currentUnitIdVal = id; document.getElementById('resourceManagementTitle').innerText = 'Resources: ' + name; document.getElementById('resourceManagementModal').style.display = 'flex'; loadResources(); };
+        window.closeResourceManagementModal = () => document.getElementById('resourceManagementModal').style.display = 'none';
+        window.loadResources = async () => {
+            try {
+                await waitForInsForge();
+                const { data: resources, error } = await window.insforge.from('resources').select('*').eq('unit_id', Number(currentUnitIdVal)).order('order_index', { ascending: true });
+                if (error) throw error;
+                const tb = document.getElementById('resourcesTableBody');
+                if (!resources || !resources.length) {
+                    tb.innerHTML = '<tr><td colspan="4" class="empty-state">No resources found</td></tr>';
+                } else {
+                    tb.innerHTML = resources.map(v => `<tr><td>${v.order_index}</td><td>${escapeHtml(v.title)}</td><td>${v.type}</td><td class="actions"><button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteResource('${v.nid}')">Del</button></td></tr>`).join('');
+                }
+            } catch (err) { console.error('Error loading resources:', err); }
+        };
+        window.openResourceModal = () => { 
+            document.getElementById('resourceModal').style.display = 'flex'; 
+            document.getElementById('resourceModalTitle').innerText = 'Add Resource';
+            document.getElementById('resourceId').value = '';
+            document.getElementById('resourceUnitId').value = currentUnitIdVal; 
+            document.getElementById('resourceChapterId').value = ''; 
+            document.getElementById('resourceTitle').value = '';
+            document.getElementById('resourceUrl').value = '';
+            document.getElementById('resourceType').value = 'link';
+            document.getElementById('resourceOrder').value = 0;
+        };
+        window.closeResourceModal = () => document.getElementById('resourceModal').style.display = 'none';
+        window.saveResource = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('resourceId').value;
+            const unitIdVal = document.getElementById('resourceUnitId').value;
+            const chapterIdVal = document.getElementById('resourceChapterId').value;
+            const data = {
+                title: document.getElementById('resourceTitle').value,
+                url: document.getElementById('resourceUrl').value,
+                type: document.getElementById('resourceType').value,
+                order_index: Number(document.getElementById('resourceOrder').value)
+            };
+            
+            if (unitIdVal) {
+                data.unit_id = Number(unitIdVal);
+                data.chapter_id = null;
+            } else if (chapterIdVal) {
+                data.chapter_id = Number(chapterIdVal);
+                data.unit_id = null;
+                data.type = 'pdf'; // Subject PDFs must be type 'pdf'
+            }
+
+            try {
+                await waitForInsForge();
+                if (id) {
+                    const { error } = await window.insforge.from('resources').update(data).eq('nid', Number(id));
+                    if (error) throw error;
+                    showNotification('Resource saved!');
+                } else {
+                    const { error } = await window.insforge.from('resources').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                    if (error) throw error;
+                    showNotification('Resource added!');
+                }
+                closeResourceModal();
+                if (unitIdVal) {
+                    loadResources();
+                } else {
+                    loadChapterPdfs();
+                }
+            } catch (err) { showNotification(err.message, true); }
+        };
+        window.deleteResource = async (id) => {
+            if (confirm('Delete resource?')) {
+                await waitForInsForge();
+                const { error } = await window.insforge.from('resources').delete().eq('nid', Number(id));
+                if (error) throw error;
+                loadResources();
+            }
+        };
+
+        // ===== SUBJECT PDF HANDLERS =====
+        window.loadChapterPdfs = async () => {
+            const cid = document.getElementById('chapterSelect').value;
+            const addPdfBtn = document.getElementById('addChapterPdfBtn');
+            const tbody = document.getElementById('chapterPdfsBody');
+            if (!cid) {
+                tbody.innerHTML = '<tr><td colspan="2" class="empty-state">Select chapter</td></tr>';
+                addPdfBtn.disabled = true;
+                return;
+            }
+            addPdfBtn.disabled = false;
+            try {
+                await waitForInsForge();
+                const { data: pdfs, error } = await window.insforge.from('resources').select('*').eq('chapter_id', Number(cid)).order('order_index', { ascending: true });
+                if (error) throw error;
+                if (!pdfs || !pdfs.length) {
+                    tbody.innerHTML = '<tr><td colspan="2" class="empty-state">No PDFs found</td></tr>';
+                } else {
+                    tbody.innerHTML = pdfs.map(p => `
+                        <tr>
+                            <td class="font-bold"><a href="${p.url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">${escapeHtml(p.title)}</a></td>
+                            <td class="actions">
+                                <button class="btn btn-secondary py-1 px-2 text-xs" onclick="editChapterPdf('${p.nid}')">Edit</button>
+                                <button class="btn btn-danger py-1 px-2 text-xs" onclick="deleteChapterPdf('${p.nid}')">Del</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (err) { console.error('Error loading subject PDFs:', err); }
+        };
+
+        window.openChapterPdfModal = () => {
+            const cid = document.getElementById('chapterSelect').value;
+            document.getElementById('resourceModal').style.display = 'flex';
+            document.getElementById('resourceModalTitle').innerText = 'Add Subject PDF';
+            document.getElementById('resourceId').value = '';
+            document.getElementById('resourceUnitId').value = '';
+            document.getElementById('resourceChapterId').value = cid;
+            document.getElementById('resourceTitle').value = '';
+            document.getElementById('resourceUrl').value = '';
+            document.getElementById('resourceType').value = 'pdf';
+            document.getElementById('resourceOrder').value = 0;
+        };
+
+        window.editChapterPdf = async (id) => {
+            try {
+                await waitForInsForge();
+                const { data: res, error } = await window.insforge.from('resources').select('*').eq('nid', Number(id)).maybeSingle();
+                if (error || !res) throw new Error(error ? error.message : 'PDF not found');
+                
+                document.getElementById('resourceModal').style.display = 'flex';
+                document.getElementById('resourceModalTitle').innerText = 'Edit Subject PDF';
+                document.getElementById('resourceId').value = id;
+                document.getElementById('resourceUnitId').value = '';
+                document.getElementById('resourceChapterId').value = res.chapter_id || '';
+                document.getElementById('resourceTitle').value = res.title;
+                document.getElementById('resourceUrl').value = res.url;
+                document.getElementById('resourceType').value = 'pdf';
+                document.getElementById('resourceOrder').value = res.order_index;
+            } catch (err) { showNotification(err.message, true); }
+        };
+
+        window.deleteChapterPdf = async (id) => {
+            if (confirm('Delete subject PDF?')) {
+                await waitForInsForge();
+                const { error } = await window.insforge.from('resources').delete().eq('nid', Number(id));
+                if (error) throw error;
+                loadChapterPdfs();
+            }
+        };
+
+    </script>
+</body>
+
+</html>
+
+

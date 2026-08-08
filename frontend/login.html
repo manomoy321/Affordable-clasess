@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - LMS</title>
+    <!-- PREVENT "FOUC" (Flash of Unstyled Content) by adding the class before body parses -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark-mode') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+    <script src="js/offline-mock.js"></script>
+    <script src="security.js"></script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Light Mode Variables (matches index.html/admin.html) */
+            --bg-color: #f5f7fa;
+            --text-color: #1a202c;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --card-border: #e2e8f0;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --input-text: #1a202c;
+            --icon-color: #94a3b8;
+            --error-bg: #fef2f2;
+            --error-border: #fca5a5;
+            --error-text: #dc2626;
+        }
+
+        .dark-mode {
+            /* Dark Mode Variables */
+            --bg-color: #111827;
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --card-bg: #1f2937;
+            --card-border: #374151;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --input-bg: #374151;
+            --input-border: #4b5563;
+            --input-text: #f3f4f6;
+            --icon-color: #9ca3af;
+            --error-bg: rgba(239, 68, 68, 0.15);
+            --error-border: rgba(239, 68, 68, 0.4);
+            --error-text: #fca5a5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ===== BIG HEADING ABOVE CARD ===== */
+        .hero-headline {
+            text-align: center;
+            margin-bottom: 32px;
+            z-index: 1;
+        }
+
+        .hero-headline .static-text {
+            display: block;
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            color: var(--text-color);
+        }
+
+        /* Typing effect wrapper */
+        .typing-wrapper {
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-top: 8px;
+            min-height: 1.5em;
+        }
+
+        .typing-text {
+            display: inline;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background-color: var(--primary);
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 0.8s step-end infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ===== MINIMAL CARD ===== */
+        .login-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 40px 32px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 400px;
+            z-index: 1;
+            position: relative;
+            animation: cardFadeIn 0.5s ease-out forwards;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .lock-icon {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 20px;
+        }
+
+        .login-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .login-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-color);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--icon-color);
+            transition: color 0.2s;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--input-text);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .form-group input:focus+.input-icon {
+            color: var(--primary);
+        }
+
+        /* Global Error Message Styling */
+        .error-message {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            color: var(--error-text);
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.4;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-4px);
+            }
+
+            75% {
+                transform: translateX(4px);
+            }
+        }
+
+        /* ===== BUTTON ===== */
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            .login-card {
+                padding: 32px 24px;
+            }
+        }
+
+        /* ===== DARK MODE TOGGLE SWITCH ===== */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+            margin-right: 12px;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 28px;
+            position: relative;
+            width: 52px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #87CEEB;
+            /* Sky blue */
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.8) 40%, transparent 42%),
+                radial-gradient(circle at 20% 110%, rgba(255, 255, 255, 0.9) 30%, transparent 32%),
+                radial-gradient(circle at 80% 110%, rgba(255, 255, 255, 0.9) 30%, transparent 32%);
+            bottom: -100%;
+            left: -50%;
+            transition: .4s;
+        }
+
+        .slider .sun-moon {
+            background-color: #FDB813;
+            /* Sun yellow */
+            bottom: 3px;
+            height: 22px;
+            left: 3px;
+            position: absolute;
+            transition: .4s;
+            width: 22px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+        }
+
+        input:checked+.slider {
+            background-color: #1a202c;
+            /* Night sky */
+        }
+
+        input:checked+.slider::before {
+            background: radial-gradient(circle at 15% 30%, white 1px, transparent 2px),
+                radial-gradient(circle at 35% 70%, white 1.5px, transparent 2.5px),
+                radial-gradient(circle at 80% 20%, white 1px, transparent 2px);
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        input:checked+.slider .sun-moon {
+            transform: translateX(24px);
+            background-color: #e2e8f0;
+            /* Moon gray */
+            box-shadow: inset -4px -2px 0 0px #cbd5e1, 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-theme-switch {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            margin-right: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="theme-switch-wrapper login-theme-switch">
+        <label class="theme-switch" for="darkModeToggle">
+            <input type="checkbox" id="darkModeToggle" />
+            <div class="slider">
+                <div class="sun-moon"></div>
+            </div>
+        </label>
+    </div>
+
+
+    <!-- Big animated heading above the card -->
+    <div class="hero-headline">
+        <span class="static-text">Affordable Classes</span>
+        <div class="typing-wrapper">
+            <span class="typing-text" id="typingText"></span><span class="cursor"></span>
+        </div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+        <div class="login-header">
+            <div class="lock-icon">🔒</div>
+            <h1>Welcome Back</h1>
+            <p>Sign in to access your dashboard</p>
+        </div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="userId">User ID</label>
+                <div class="input-wrapper">
+                    <input type="text" id="userId" required autofocus autocomplete="username">
+                    <span class="input-icon">👤</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" required autocomplete="current-password">
+                    <span class="input-icon">🔑</span>
+                </div>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+            <div id="errorMessage" class="error-message">Invalid user ID or password</div>
+        </form>
+    </div>
+
+    <!-- Typing effect script -->
+    <script>
+        const phrases = [
+            'Learn at your own pace.',
+            'Quality education for everyone.',
+            'Your journey starts here.',
+            'Empower your future today.'
+        ];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const el = document.getElementById('typingText');
+
+        function typeLoop() {
+            const current = phrases[phraseIndex];
+            if (!isDeleting) {
+                el.textContent = current.substring(0, charIndex + 1);
+                charIndex++;
+                if (charIndex === current.length) {
+                    isDeleting = true;
+                    setTimeout(typeLoop, 1800);
+                    return;
+                }
+                setTimeout(typeLoop, 55);
+            } else {
+                el.textContent = current.substring(0, charIndex - 1);
+                charIndex--;
+                if (charIndex === 0) {
+                    isDeleting = false;
+                    phraseIndex = (phraseIndex + 1) % phrases.length;
+                    setTimeout(typeLoop, 400);
+                    return;
+                }
+                setTimeout(typeLoop, 30);
+            }
+        }
+        typeLoop();
+    </script>
+
+    <script type="module" src="/insforge-client.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectUrl = urlParams.get('redirect') || 'index.html';
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const userId = document.getElementById('userId').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
+            const loginBtn = document.querySelector('.btn-login');
+
+            const showError = (msg, isWarning = false) => {
+                errorMsg.style.display = 'block';
+                errorMsg.style.color = isWarning ? '#fbbf24' : '#fca5a5';
+                errorMsg.style.borderColor = isWarning ? 'rgba(251,191,36,0.25)' : 'rgba(239,68,68,0.25)';
+                errorMsg.style.background = isWarning ? 'rgba(251,191,36,0.1)' : 'rgba(239,68,68,0.12)';
+                errorMsg.textContent = msg;
+            };
+
+            try {
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Signing in…';
+                errorMsg.style.display = 'none';
+
+                let attempts = 0;
+                while (!window.insforge && attempts < 150) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                if (!window.insforge) {
+                    throw new Error("Authentication service connection failed. Please check your internet or refresh.");
+                }
+
+                const { data: result, error } = await window.insforge.rpc('login_user', {
+                    login_user_id: userId,
+                    login_password: password
+                });
+
+                if (error) throw new Error('Authentication service error');
+
+                if (result.limit_reached) {
+                    // RECORD THE REQUEST IN THE DATABASE
+                    try {
+                        await window.insforge.from('login_requests').insert({
+                            nid: Math.floor(Date.now() / 1000),
+                            user_id: userId,
+                            user_name: userId,
+                            requested_at: new Date().toISOString()
+                        });
+                    } catch (e) { console.error('Failed to record request:', e); }
+
+                    showError('⏳ Daily login limit reached. An extension request has been sent to your administrator.', true);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                    return;
+                }
+
+                if (!result.success) {
+                    throw new Error(result.message || 'Invalid user ID or password');
+                }
+
+                if (result.success && result.session && result.session.user) {
+                    localStorage.setItem('user', JSON.stringify(result.session.user));
+                    localStorage.setItem('session_token', result.session_token);
+
+                    // Register service worker + request notification permission
+                    if ('serviceWorker' in navigator) {
+                        try { await navigator.serviceWorker.register('/sw.js'); } catch (e) { }
+                    }
+
+                    if ('Notification' in window && Notification.permission === 'default') {
+                        // Show friendly in-page banner before redirecting
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Login';
+                        showNotifBanner(redirectUrl);
+                    } else {
+                        window.location.href = redirectUrl;
+                    }
+                }
+
+            } catch (err) {
+                console.error('Login error:', err);
+                showError(err.message || 'Invalid user ID or password');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        }
+
+        function showNotifBanner(redirectUrl) {
+            // Create overlay banner
+            const banner = document.createElement('div');
+            banner.id = 'notifBanner';
+            banner.style.cssText = `
+                position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999;
+                display: flex; align-items: center; justify-content: center; padding: 20px;
+                backdrop-filter: blur(6px); animation: cardFadeIn 0.3s ease-out;
+            `;
+            banner.innerHTML = `
+                <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔔</div>
+                    <h2 style="font-size: 18px; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Stay Updated!</h2>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
+                        Enable notifications to instantly know when new videos are added to your course.
+                    </p>
+                    <button id="enableNotifBtn" style="
+                        width: 100%; padding: 12px; background: var(--primary); color: white; border: none;
+                        border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px;
+                        transition: background 0.2s;
+                    ">🔔 Enable Notifications</button>
+                    <button onclick="document.getElementById('notifBanner').remove(); window.location.href='${redirectUrl}'" style="
+                        width: 100%; padding: 10px; background: transparent; color: var(--text-muted);
+                        border: 1px solid var(--card-border); border-radius: 8px; font-size: 14px;
+                        cursor: pointer;
+                    ">Not now</button>
+                </div>
+            `;
+            document.body.appendChild(banner);
+            document.getElementById('enableNotifBtn').onclick = async () => {
+                try {
+                    const perm = await Notification.requestPermission();
+                    if (perm === 'granted') {
+                        new Notification('Notifications Enabled! 🎉', { body: 'You\'ll be notified when new videos are added.' });
+                    }
+                } catch (e) { }
+                document.getElementById('notifBanner').remove();
+                window.location.href = redirectUrl;
+            };
+        }
+    </script>
+
+    <!-- Dark Mode Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleSwitch = document.getElementById('darkModeToggle');
+            if (!toggleSwitch) return;
+
+            // Sync toggle state with current theme (applied by the <head> script)
+            if (localStorage.getItem('theme') === 'dark-mode') {
+                document.body.classList.add('dark-mode');
+                toggleSwitch.checked = true;
+            }
+
+            toggleSwitch.addEventListener('change', function (e) {
+                if (e.target.checked) {
+                    document.documentElement.classList.add('dark-mode');
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark-mode');
+                } else {
+                    document.documentElement.classList.remove('dark-mode');
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light-mode');
+                }
+            }, false);
+        });
+    </script>
+
+</body>
+
+</html>
+
+

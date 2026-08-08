@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Content</title>
+    <!-- PREVENT "FOUC" (Flash of Unstyled Content) by adding the class before body parses -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark-mode') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+    <script src="security.js"></script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@insforge/sdk@latest/+esm">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            color: #1a202c;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Back Button */
+        .back-btn {
+            background: #3b82f6;
+            border: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Unit Header */
+        .unit-header {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .unit-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .unit-meta {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Content Area */
+        .content-area {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .placeholder-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .placeholder h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        /* Section dividers */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 24px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Video Grid */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .thumbnail-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            background: #eee;
+        }
+
+        .thumbnail-wrapper img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .video-info {
+            padding: 12px;
+        }
+
+        .video-card-title {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a202c;
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
+
+        /* Resources List */
+        .resources-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .resource-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #1a202c;
+            transition: background 0.2s;
+        }
+
+        .resource-item:hover {
+            background: #f1f5f9;
+            border-color: #3b82f6;
+        }
+
+        .resource-icon {
+            font-size: 20px;
+        }
+
+        .resource-title {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        /* Tablets */
+        @media (max-width: 768px) {
+            .video-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== LOADER ===== */
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--card-border, #e2e8f0);
+            border-top: 4px solid var(--primary, #3b82f6);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== DARK MODE TOGGLE SWITCH ===== */
+        .theme-switch-wrapper {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 28px;
+            position: relative;
+            width: 52px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #87CEEB;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.8) 40%, transparent 42%),
+                radial-gradient(circle at 20% 110%, rgba(255, 255, 255, 0.9) 30%, transparent 32%),
+                radial-gradient(circle at 80% 110%, rgba(255, 255, 255, 0.9) 30%, transparent 32%);
+            bottom: -100%;
+            left: -50%;
+            transition: .4s;
+        }
+
+        .slider .sun-moon {
+            background-color: #FDB813;
+            bottom: 3px;
+            height: 22px;
+            left: 3px;
+            position: absolute;
+            transition: .4s;
+            width: 22px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+        }
+
+        input:checked+.slider {
+            background-color: #1a202c;
+        }
+
+        input:checked+.slider::before {
+            background: radial-gradient(circle at 15% 30%, white 1px, transparent 2px),
+                radial-gradient(circle at 35% 70%, white 1.5px, transparent 2.5px),
+                radial-gradient(circle at 80% 20%, white 1px, transparent 2px);
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        input:checked+.slider .sun-moon {
+            transform: translateX(24px);
+            background-color: #e2e8f0;
+            box-shadow: inset -4px -2px 0 0px #cbd5e1, 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ===== DARK MODE ===== */
+        .dark-mode {
+            background: #111827;
+            color: #f3f4f6;
+        }
+
+        .dark-mode .unit-header,
+        .dark-mode .content-area,
+        .dark-mode .video-card {
+            background: #1f2937;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-mode .unit-title,
+        .dark-mode .section-title,
+        .dark-mode .video-card-title,
+        .dark-mode .resource-item {
+            color: #f3f4f6;
+        }
+
+        .dark-mode .resource-item {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .dark-mode .resource-item:hover {
+            background: #4b5563;
+        }
+
+        .dark-mode .back-btn {
+            color: #f3f4f6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="darkModeToggle">
+            <input type="checkbox" id="darkModeToggle">
+            <div class="slider">
+                <div class="sun-moon"></div>
+            </div>
+        </label>
+    </div>
+
+    <div class="container">
+        <!-- Back Button -->
+        <button class="back-btn" id="backBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Back to Units
+        </button>
+
+        <div class="unit-header">
+            <h1 class="unit-title" id="unitTitle">
+                <div class="loader"></div>
+            </h1>
+            <div class="unit-meta" id="unitMeta">Unit Content</div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area" id="contentArea">
+            <div class="placeholder">
+                <div class="placeholder-icon">📖</div>
+                <h3>Loading content...</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/insforge-client.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const unitId = urlParams.get('id') || urlParams.get('unitId');
+        const unitName = urlParams.get('name');
+        const chapterId = urlParams.get('chapterId');
+
+        window._vx = function (str) { return btoa(str).split('').reverse().join(''); };
+        window._vd = function (str) { return atob(str.split('').reverse().join('')); };
+
+        if (unitName) {
+            document.getElementById('unitTitle').textContent = decodeURIComponent(unitName);
+            document.title = decodeURIComponent(unitName);
+        }
+
+        const backBtn = document.getElementById('backBtn');
+        if (chapterId) {
+            backBtn.onclick = () => window.location.href = `chapter.html?id=${chapterId}`;
+        } else {
+            backBtn.onclick = () => window.location.href = 'index.html';
+        }
+
+        async function waitForInsForge() {
+            let attempts = 0;
+            while (!window.insforge && attempts < 100) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+        }
+
+        async function loadUnitContent() {
+            if (!unitId) {
+                showPlaceholder('No unit selected');
+                return;
+            }
+
+            try {
+                await waitForInsForge();
+                if (!window.insforge) {
+                    showPlaceholder("Database connection failed. Please refresh.");
+                    return;
+                }
+
+                // Fetch videos and resources from InsForge SDK
+                const [{ data: videos, error: vErr }, { data: resources, error: rErr }] = await Promise.all([
+                    window.insforge.from('videos').select('*').eq('unit_id', Number(unitId)).order('order_index', { ascending: true }),
+                    window.insforge.from('resources').select('*').eq('unit_id', Number(unitId)).order('order_index', { ascending: true })
+                ]);
+
+                if (vErr) throw vErr;
+                if (rErr) throw rErr;
+
+                if (videos.length === 0 && resources.length === 0) {
+                    showPlaceholder('No content available for this unit');
+                    return;
+                }
+
+                displayContent(videos, resources);
+            } catch (error) {
+                console.error('Error loading unit:', error);
+                showPlaceholder('Error loading content');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleSwitch = document.getElementById('darkModeToggle');
+            if (!toggleSwitch) return;
+
+            // Sync toggle state with current theme (applied by the <head> script)
+            if (localStorage.getItem('theme') === 'dark-mode') {
+                document.body.classList.add('dark-mode');
+                toggleSwitch.checked = true;
+            }
+
+            toggleSwitch.addEventListener('change', function (e) {
+                if (e.target.checked) {
+                    document.documentElement.classList.add('dark-mode');
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark-mode');
+                } else {
+                    document.documentElement.classList.remove('dark-mode');
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light-mode');
+                }
+            }, false);
+        });
+
+        function displayContent(videos, resources) {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = '';
+
+            if (videos.length > 0) {
+                contentArea.innerHTML += `
+                    <h2 class="section-title"><span>📺</span> Videos</h2>
+                    <div class="video-grid">
+                        ${videos.map(v => {
+                    const videoId = extractYouTubeVideoId(v.youtube_url);
+                    const encId = window._vx(videoId);
+                    return `
+                                <div class="video-card" onclick="openVideoModal('${encId}')">
+                                    <div class="thumbnail-wrapper" id="thumb-${encId}">
+                                        <div class="play-overlay">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#333"><path d="M8 5v14l11-7z"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="video-info">
+                                        <h4 class="video-card-title">${escapeHtml(v.title)}</h4>
+                                    </div>
+                                </div>
+                            `;
+                }).join('')}
+                    </div>
+                `;
+
+                // Load thumbnails dynamically after rendering
+                setTimeout(() => {
+                    videos.forEach(v => {
+                        const videoId = extractYouTubeVideoId(v.youtube_url);
+                        const encId = window._vx(videoId);
+                        const wrapper = document.getElementById(`thumb-${encId}`);
+                        if (wrapper) {
+                            const baseUrl = ['h', 't', 't', 'p', 's', ':', '/', '/', 'i', 'm', 'g', '.', 'y', 'o', 'u', 't', 'u', 'b', 'e', '.', 'c', 'o', 'm', '/', 'v', 'i', '/'].join('');
+                            const endUrl = ['/', 'h', 'q', 'd', 'e', 'f', 'a', 'u', 'l', 't', '.', 'j', 'p', 'g'].join('');
+                            const img = document.createElement('img');
+                            img.src = baseUrl + videoId + endUrl;
+                            img.alt = escapeHtml(v.title);
+                            wrapper.insertBefore(img, wrapper.firstChild);
+                        }
+                    });
+                }, 100);
+            }
+
+            if (resources.length > 0) {
+                contentArea.innerHTML += `
+                    <h2 class="section-title"><span>📂</span> Resources</h2>
+                    <div class="resources-list">
+                        ${resources.map(r => `
+                            <a href="${r.url}" target="_blank" class="resource-item">
+                                <span class="resource-icon">${r.type === 'pdf' ? '📕' : '🔗'}</span>
+                                <span class="resource-title">${escapeHtml(r.title)}</span>
+                                <span>↗️</span>
+                            </a>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Initialize Video Modal components if not present
+            initVideoModal();
+        } // end displayContent
+
+        function initVideoModal() {
+            if (document.getElementById('yt-modal')) return;
+
+            const ytApi = ['h', 't', 't', 'p', 's', ':', '/', '/', 'w', 'w', 'w', '.', 'y', 'o', 'u', 't', 'u', 'b', 'e', '.', 'c', 'o', 'm', '/', 'i', 'f', 'r', 'a', 'm', 'e', '_', 'a', 'p', 'i'].join('');
+            const tag = document.createElement('script');
+            tag.src = ytApi;
+            document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
+            window.onYouTubeIframeAPIReady = () => window.ytPlayerReady = true;
+
+            document.body.insertAdjacentHTML('beforeend', `
+            <style>
+                #yt-modal {
+                    display:none; position:fixed; inset:0;
+                    background:rgba(15, 17, 26, 0);
+                    z-index:9999; align-items:center; justify-content:center;
+                    font-family:'Inter',sans-serif; touch-action:none;
+                    opacity: 0;
+                    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                #yt-modal.open {
+                    opacity: 1;
+                    background: rgba(15, 17, 26, 0.8);
+                    box-shadow: inset 0 0 100px rgba(255, 255, 255, 0.03);
+                }
+                #yt-container {
+                    position:relative; width:100%; max-width:960px;
+                    aspect-ratio:16/9; background:#000; overflow:hidden;
+                    z-index: 2;
+                }
+                @media(min-width:600px){
+                    #yt-modal.open {
+                        background: rgba(15, 17, 26, 0.85);
+                    }
+                    #yt-container { border-radius:12px; width:92%; box-shadow:0 30px 80px rgba(0,0,0,0.9); }
+                }
+
+
+                #yt-iframe-wrap { display:none; }
+
+                #yt-ctrl {
+                    position:absolute; inset:0; display:flex; flex-direction:column;
+                    justify-content:flex-end;
+                    background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 45%, transparent 70%);
+                    transition:opacity .35s ease; z-index:10;
+                }
+                #yt-ctrl.hidden { opacity:0; pointer-events:none; }
+                #yt-zones { position:absolute; inset:0; display:flex; z-index:5; user-select:none; }
+
+                /* ── On-screen center controls ── */
+                #yt-center-btns {
+                    position:absolute; top:50%; left:0; width:100%;
+                    transform:translateY(-50%);
+                    display:flex; align-items:center; justify-content:center;
+                    gap:0; pointer-events:none; z-index:12;
+                }
+                .yt-center-btn {
+                    flex:1; display:flex; align-items:center; justify-content:center;
+                    height:80px; pointer-events:auto; cursor:pointer;
+                    -webkit-tap-highlight-color:transparent; user-select:none;
+                }
+                .yt-center-btn-inner {
+                    display:flex; flex-direction:column; align-items:center;
+                    justify-content:center; gap:4px;
+                    transition:transform .1s, opacity .12s;
+                    text-shadow:0 0 10px rgba(0,0,0,0.8);
+                }
+                .yt-center-btn:active .yt-center-btn-inner {
+                    transform:scale(0.9); opacity:0.7;
+                }
+                .yt-center-btn-inner svg { display:block; }
+                .yt-center-btn-inner span {
+                    color:#fff; font-size:11px; font-weight:700;
+                    text-shadow:0 1px 3px rgba(0,0,0,.8); line-height:1;
+                }
+                /* seek ripple flash */
+                .yt-seek-flash {
+                    position:absolute; top:0; height:100%; width:33%;
+                    display:flex; align-items:center; justify-content:center;
+                    pointer-events:none; opacity:0; border-radius:50%;
+                    background:rgba(255,255,255,0.12);
+                    transition:opacity .08s;
+                    animation:none; z-index:11;
+                }
+                .yt-seek-flash.left { left:0; border-radius:0 999px 999px 0 / 0 50% 50% 0; }
+                .yt-seek-flash.right { right:0; border-radius:999px 0 0 999px / 50% 0 0 50%; }
+                .yt-seek-flash.show { opacity:1; }
+
+                #yt-play-flash {
+                    position:absolute; top:50%; left:50%;
+                    transform:translate(-50%,-50%) scale(0); opacity:0;
+                    width:72px; height:72px; border-radius:50%;
+                    background:rgba(255,255,255,0.18);
+                    display:flex; align-items:center; justify-content:center;
+                    transition:transform .15s, opacity .25s; pointer-events:none; z-index:6;
+                }
+                #yt-play-flash.pop { transform:translate(-50%,-50%) scale(1); opacity:1; }
+                #yt-bottom { padding:env(safe-area-inset-bottom,0) 0 0; position:relative; z-index:11; }
+                #yt-prog-wrap { padding:10px 12px 4px; cursor:pointer; touch-action:none; }
+                #yt-prog-track {
+                    position:relative; height:3px; background:rgba(255,255,255,.3);
+                    border-radius:2px; transition:height .12s;
+                }
+                #yt-prog-wrap:hover #yt-prog-track, #yt-prog-wrap.seeking #yt-prog-track { height:5px; }
+                #yt-buffered { position:absolute; top:0; left:0; height:100%; background:rgba(255,255,255,.4); border-radius:2px; width:0; }
+                #yt-prog { position:absolute; top:0; left:0; height:100%; background:#ff0000; border-radius:2px; width:0; }
+                #yt-thumb {
+                    position:absolute; top:50%; left:0%;
+                    width:13px; height:13px; border-radius:50%;
+                    background:#ff0000; border:2px solid #fff;
+                    transform:translate(-50%,-50%) scale(0);
+                    transition:transform .12s; box-shadow:0 1px 4px rgba(0,0,0,.5);
+                }
+                #yt-prog-wrap:hover #yt-thumb, #yt-prog-wrap.seeking #yt-thumb { transform:translate(-50%,-50%) scale(1); }
+                #yt-btn-row { display:flex; align-items:center; gap:2px; padding:0 6px 10px; }
+                .yt-btn {
+                    background:none; border:none; color:#fff; cursor:pointer;
+                    min-width:44px; min-height:44px; display:flex; align-items:center;
+                    justify-content:center; border-radius:50%; flex-shrink:0;
+                    -webkit-tap-highlight-color:transparent; transition:background .15s;
+                }
+                .yt-btn:hover,.yt-btn:active { background:rgba(255,255,255,.12); }
+                #yt-time { font-size:12px; color:rgba(255,255,255,.9); white-space:nowrap; padding:0 4px; min-width:84px; }
+                .yt-vol-wrap { display:flex; align-items:center; }
+                #yt-vol-slider {
+                    -webkit-appearance:none; appearance:none;
+                    width:0; height:4px; border-radius:2px; outline:none;
+                    background:rgba(255,255,255,.3); cursor:pointer;
+                    overflow:hidden; transition:width .2s ease;
+                }
+                .yt-vol-wrap:hover #yt-vol-slider { width:60px; }
+                #yt-vol-slider::-webkit-slider-thumb {
+                    -webkit-appearance:none; width:10px; height:10px;
+                    background:#fff; border-radius:50%; box-shadow:-60px 0 0 58px #fff;
+                }
+                #yt-vol-slider::-moz-range-thumb { width:10px; height:10px; background:#fff; border-radius:50%; border:none; }
+                #yt-settings-popup {
+                    position:absolute; bottom:64px; right:8px;
+                    background:rgba(20,20,20,.97); border-radius:10px;
+                    padding:8px 0; min-width:200px; z-index:20;
+                    box-shadow:0 8px 32px rgba(0,0,0,.8);
+                    display:none; backdrop-filter:blur(10px);
+                    max-height:70vh; overflow-y:auto;
+                }
+                #yt-settings-popup.open { display:block; }
+                .yt-set-label { font-size:11px; color:rgba(255,255,255,.45); padding:6px 16px 2px; text-transform:uppercase; letter-spacing:.8px; }
+                .yt-set-opt {
+                    display:flex; align-items:center; justify-content:space-between;
+                    padding:10px 16px; color:#fff; cursor:pointer; font-size:14px;
+                    min-height:44px; transition:background .1s; -webkit-tap-highlight-color:transparent;
+                }
+                .yt-set-opt:hover,.yt-set-opt:active { background:rgba(255,255,255,.08); }
+                .yt-set-opt.active { color:#ff4444; }
+                .yt-set-divider { height:1px; background:rgba(255,255,255,.1); margin:4px 0; }
+                #yt-close {
+                    position:absolute; top:10px; right:10px; z-index:15;
+                    color:#fff; cursor:pointer; width:44px; height:44px;
+                    display:flex; align-items:center; justify-content:center;
+                    border-radius:50%; background:rgba(0,0,0,.3); font-size:22px;
+                    -webkit-tap-highlight-color:transparent; transition:background .15s;
+                }
+                #yt-close:hover { background:rgba(255,255,255,.15); }
+
+                @media(max-width: 600px) {
+                    #yt-thumb {
+                        transform: translate(-50%, -50%) scale(1.2) !important;
+                        width: 14px;
+                        height: 14px;
+                    }
+                    #yt-prog-wrap {
+                        padding: 15px 12px 8px;
+                    }
+                    #yt-vol-slider {
+                        display: none !important;
+                    }
+                    #yt-settings-popup {
+                        bottom: 56px;
+                        right: 12px;
+                        left: auto;
+                        min-width: 160px;
+                    }
+                }
+            </style>
+
+            <div id="yt-modal">
+
+                <div id="yt-container">
+                    <div id="ytplayer" style="position:absolute;top:-150%;left:0;width:100%;height:400%;pointer-events:none;"></div>
+                    <div id="yt-close" onclick="closeVideoModal()">&#x2715;</div>
+                    <div id="yt-play-flash"><svg width="34" height="34" fill="white" id="yt-flash-icon"><path d="M8 5v14l11-7z"/></svg></div>
+                    <!-- On-screen tap zones (invisible, for gesture detection) -->
+                    <div id="yt-zones">
+                        <div id="yt-zone-l" style="flex:1;height:100%;cursor:pointer;-webkit-tap-highlight-color:transparent;"></div>
+                        <div id="yt-zone-c" style="flex:1;height:100%;cursor:pointer;-webkit-tap-highlight-color:transparent;"></div>
+                        <div id="yt-zone-r" style="flex:1;height:100%;cursor:pointer;-webkit-tap-highlight-color:transparent;"></div>
+                    </div>
+                    <!-- Seek flash overlays -->
+                    <div class="yt-seek-flash left" id="yt-flash-l"></div>
+                    <div class="yt-seek-flash right" id="yt-flash-r"></div>
+                    <div id="yt-ctrl">
+                        <!-- 3 on-screen center buttons: strictly separated, no overlap -->
+                        <div id="yt-center-btns">
+                            <!-- Back 10s -->
+                            <div class="yt-center-btn" id="yt-cbtn-l" title="Double-tap: -10s">
+                                <div class="yt-center-btn-inner">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                                    <span>-10s</span>
+                                </div>
+                            </div>
+                            <!-- Play / Pause -->
+                            <div class="yt-center-btn" id="yt-cbtn-c" onclick="togglePlay()" title="Play/Pause">
+                                <div class="yt-center-btn-inner">
+                                    <svg width="34" height="34" fill="white" id="yt-center-pp"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                </div>
+                            </div>
+                            <!-- Forward 10s -->
+                            <div class="yt-center-btn" id="yt-cbtn-r" title="Double-tap: +10s">
+                                <div class="yt-center-btn-inner">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="white" style="transform:scaleX(-1)"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                                    <span>+10s</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="yt-bottom">
+                            <div id="yt-prog-wrap">
+                                <div id="yt-prog-track">
+                                    <div id="yt-buffered"></div>
+                                    <div id="yt-prog"></div>
+                                    <div id="yt-thumb"></div>
+                                </div>
+                            </div>
+                            <div id="yt-btn-row">
+                                <button class="yt-btn" onclick="togglePlay()" title="Play/Pause (Space)">
+                                    <svg width="26" height="26" fill="currentColor" id="yt-pp-icon"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                </button>
+                                <div class="yt-vol-wrap">
+                                    <button class="yt-btn" onclick="toggleMute()" title="Mute (M)">
+                                        <svg width="22" height="22" fill="currentColor" id="yt-vol-icon"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                                    </button>
+                                    <input type="range" id="yt-vol-slider" min="0" max="100" value="100" oninput="setVolume(this.value)">
+                                </div>
+                                <span id="yt-time">0:00 / 0:00</span>
+                                <div style="flex:1"></div>
+                                <button class="yt-btn" id="yt-settings-btn" onclick="toggleSettings()" title="Speed Control">
+                                    <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.86a2 2 0 0 0 1.72-1 10 10 0 0 0-.27-10.43zM10.5 12a1.5 1.5 0 1 1 1.5 1.5 1.5 1.5 0 0 1-1.5-1.5zm6.36-4.24l-3.53 3.53a3 3 0 1 0-.71.71l3.53-3.53z"/></svg>
+                                </button>
+                                <button class="yt-btn" onclick="toggleFullScreen()" title="Fullscreen (F)">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" id="yt-fs-icon"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="yt-settings-popup">
+                        <div class="yt-set-label">Playback Speed</div>
+                        <div id="yt-speed-list"></div>
+                    </div>
+                </div>
+            </div>
+            `);
+
+            // Progress bar
+            const pw = document.getElementById('yt-prog-wrap');
+            let isSeeking = false;
+            function seekAt(x) {
+                if (!window._yt) return;
+                const r = pw.getBoundingClientRect();
+                const p = Math.max(0, Math.min(1, (x - r.left) / r.width));
+                window._yt.seekTo(window._yt.getDuration() * p, true);
+                document.getElementById('yt-prog').style.width = p * 100 + '%';
+                document.getElementById('yt-thumb').style.left = p * 100 + '%';
+            }
+            pw.addEventListener('mousedown', e => { isSeeking = true; pw.classList.add('seeking'); seekAt(e.clientX); });
+            document.addEventListener('mousemove', e => { if (isSeeking) seekAt(e.clientX); });
+            document.addEventListener('mouseup', () => { isSeeking = false; pw.classList.remove('seeking'); });
+            pw.addEventListener('touchstart', e => { isSeeking = true; pw.classList.add('seeking'); seekAt(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+            document.addEventListener('touchmove', e => { if (isSeeking) { seekAt(e.touches[0].clientX); e.preventDefault(); } }, { passive: false });
+            document.addEventListener('touchend', () => { isSeeking = false; pw.classList.remove('seeking'); });
+
+            // ── Tap zones with double-tap detection ──
+            function makeDoubleTapHandler(onSingleTap, onDoubleTap) {
+                let lastTap = 0;
+                return function (e) {
+                    if (e.type === 'touchend') e.preventDefault();
+                    const now = Date.now();
+                    if (now - lastTap < 300) {
+                        // double tap
+                        lastTap = 0;
+                        onDoubleTap();
+                    } else {
+                        lastTap = now;
+                        onSingleTap();
+                    }
+                };
+            }
+
+            function seekFlash(dir) {
+                const el = document.getElementById('yt-flash-' + dir);
+                if (!el) return;
+                el.classList.add('show');
+                setTimeout(() => el.classList.remove('show'), 500);
+            }
+
+            function seekBack() {
+                if (!window._yt) return;
+                window._yt.seekTo(Math.max(0, window._yt.getCurrentTime() - 10), true);
+                seekFlash('l'); showCtrl();
+            }
+            function seekFwd() {
+                if (!window._yt) return;
+                window._yt.seekTo(window._yt.getCurrentTime() + 10, true);
+                seekFlash('r'); showCtrl();
+            }
+
+            // Invisible tap zones (cover full screen thirds)
+            const zoneL = document.getElementById('yt-zone-l');
+            const zoneC = document.getElementById('yt-zone-c');
+            const zoneR = document.getElementById('yt-zone-r');
+            const handlerL = makeDoubleTapHandler(() => showCtrl(), seekBack);
+            const handlerR = makeDoubleTapHandler(() => showCtrl(), seekFwd);
+            ['click', 'touchend'].forEach(ev => {
+                zoneL.addEventListener(ev, handlerL, { passive: false });
+                zoneR.addEventListener(ev, handlerR, { passive: false });
+                zoneC.addEventListener(ev, function (e) {
+                    if (e.type === 'touchend') e.preventDefault();
+                    toggleShowHide();
+                }, { passive: false });
+            });
+
+            // Visible on-screen back/fwd buttons use same double-tap logic
+            const cbtnL = document.getElementById('yt-cbtn-l');
+            const cbtnR = document.getElementById('yt-cbtn-r');
+            if (cbtnL) {
+                const hL = makeDoubleTapHandler(() => showCtrl(), seekBack);
+                ['click', 'touchend'].forEach(ev => cbtnL.addEventListener(ev, hL, { passive: false }));
+            }
+            if (cbtnR) {
+                const hR = makeDoubleTapHandler(() => showCtrl(), seekFwd);
+                ['click', 'touchend'].forEach(ev => cbtnR.addEventListener(ev, hR, { passive: false }));
+            }
+
+
+            window.toggleSettings = () => {
+                const p = document.getElementById('yt-settings-popup');
+                if (!p) return;
+                if (p.classList.contains('open')) { p.classList.remove('open'); return; }
+                buildSettingsMenu(); p.classList.add('open');
+            };
+            document.addEventListener('click', e => {
+                const p = document.getElementById('yt-settings-popup');
+                const b = document.getElementById('yt-settings-btn');
+                if (p && b && !p.contains(e.target) && !b.contains(e.target)) p.classList.remove('open');
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const ic = document.getElementById('yt-fs-icon');
+                if (!ic) return;
+                ic.innerHTML = document.fullscreenElement
+                    ? '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>'
+                    : '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>';
+            });
+        }
+
+        // Player IIFE
+        (function () {
+            let _yt = null, _hideTimer = null, _curSpeed = 1, _curQuality = 'auto', _availQ = ['auto'];
+            const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
+            window.showCtrl = function showCtrl() {
+                const c = document.getElementById('yt-ctrl');
+                if (!c) return;
+                c.classList.remove('hidden');
+                clearTimeout(_hideTimer);
+                _hideTimer = setTimeout(() => { if (_yt && _yt.getPlayerState() === 1) c.classList.add('hidden'); }, 3500);
+            };
+
+            window.toggleShowHide = function () {
+                const c = document.getElementById('yt-ctrl');
+                if (!c) return;
+                if (c.classList.contains('hidden')) { showCtrl(); return; }
+                if (_yt && _yt.getPlayerState() === 1) { clearTimeout(_hideTimer); c.classList.add('hidden'); }
+                else showCtrl();
+            };
+
+            window.openVideoModal = function (encId) {
+                if (!window.ytPlayerReady) return alert('Loading player...');
+                const id = window._vd(encId);
+                const modal = document.getElementById('yt-modal');
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('open'), 10);
+                _curSpeed = 1; _curQuality = 'hd1080'; _availQ = ['hd1080'];
+                document.getElementById('yt-ctrl').classList.remove('hidden');
+                const con = document.getElementById('yt-container');
+                if (con) { con.onmousemove = showCtrl; }
+                if (_yt) {
+                    _yt.loadVideoById({ videoId: id, suggestedQuality: 'hd1080' });
+                    _yt.setPlaybackRate(1);
+                }
+                else {
+                    _yt = new YT.Player('ytplayer', {
+                        videoId: id,
+                        playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, vq: 'hd1080' },
+                        events: {
+                            onStateChange, onReady: e => {
+                                const v = e.target.getVolume();
+                                const s = document.getElementById('yt-vol-slider');
+                                if (s) s.value = v;
+                                try {
+                                    if (typeof e.target.setPlaybackQualityRange === 'function') {
+                                        e.target.setPlaybackQualityRange('hd1080', 'hd1080');
+                                    }
+                                } catch (_) {}
+                                try {
+                                    if (typeof e.target.setPlaybackQuality === 'function') {
+                                        e.target.setPlaybackQuality('hd1080');
+                                    }
+                                } catch (_) {}
+                            }
+                        }
+                    });
+                }
+                window._yt = _yt;
+            };
+
+            function onStateChange(e) {
+                const ic = document.getElementById('yt-pp-icon');
+                const cic = document.getElementById('yt-center-pp');
+                const playIcon = '<path d="M8 5v14l11-7z"/>';
+                const pauseIcon = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+
+                if (e.data === 1) { // Playing
+                    if (ic) ic.innerHTML = pauseIcon;
+                    if (cic) cic.innerHTML = pauseIcon;
+                    window._progInt = setInterval(updateProg, 250);
+                    try {
+                        if (typeof _yt.setPlaybackQualityRange === 'function') {
+                            _yt.setPlaybackQualityRange('hd1080', 'hd1080');
+                        }
+                    } catch (_) {}
+                    try {
+                        if (typeof _yt.setPlaybackQuality === 'function') {
+                            _yt.setPlaybackQuality('hd1080');
+                        }
+                    } catch (_) {}
+                    showCtrl();
+                } else { // Paused or Buffering
+                    if (ic) ic.innerHTML = playIcon;
+                    if (cic) cic.innerHTML = playIcon;
+                    clearInterval(window._progInt);
+                    showCtrl();
+                }
+            }
+
+
+            function fmt(s) {
+                if (!s || isNaN(s)) return '0:00';
+                const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+                return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`;
+            }
+
+            function updateProg() {
+                if (!_yt || typeof _yt.getCurrentTime !== 'function') return;
+                const cur = _yt.getCurrentTime(), dur = _yt.getDuration();
+                if (!dur) return;
+                const p = cur / dur * 100;
+                const pb = document.getElementById('yt-prog'), th = document.getElementById('yt-thumb');
+                if (pb) pb.style.width = p + '%';
+                if (th) th.style.left = p + '%';
+                try { const buf = document.getElementById('yt-buffered'); if (buf) buf.style.width = (_yt.getVideoLoadedFraction() * 100) + '%'; } catch (_) { }
+                const t = document.getElementById('yt-time');
+                if (t) t.innerText = fmt(cur) + ' / ' + fmt(dur);
+            }
+
+            window.closeVideoModal = () => {
+                if (_yt) _yt.stopVideo();
+                clearInterval(window._progInt); clearTimeout(_hideTimer);
+                const modal = document.getElementById('yt-modal');
+                modal.classList.remove('open');
+                setTimeout(() => {
+                    if (!modal.classList.contains('open')) {
+                        modal.style.display = 'none';
+                    }
+                }, 400);
+                const p = document.getElementById('yt-settings-popup');
+                if (p) p.classList.remove('open');
+                document.getElementById('yt-ctrl').classList.remove('hidden');
+            };
+
+            window.togglePlay = () => {
+                if (!_yt) return;
+                const fl = document.getElementById('yt-play-flash');
+                const ic = document.getElementById('yt-flash-icon');
+                const playIcon = '<path d="M8 5v14l11-7z"/>';
+                const pauseIcon = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+
+                if (_yt.getPlayerState() === 1) {
+                    _yt.pauseVideo();
+                    if (ic) ic.innerHTML = pauseIcon;
+                } else {
+                    _yt.playVideo();
+                    if (ic) ic.innerHTML = playIcon;
+                }
+                if (fl) { fl.classList.add('pop'); setTimeout(() => fl.classList.remove('pop'), 400); }
+            };
+
+
+            window.toggleMute = () => {
+                if (!_yt) return;
+                if (_yt.isMuted()) { _yt.unMute(); const s = document.getElementById('yt-vol-slider'); if (s) s.value = _yt.getVolume(); setVolIcon(_yt.getVolume()); }
+                else { _yt.mute(); setVolIcon(0); }
+            };
+
+            window.setVolume = v => {
+                if (!_yt) return;
+                _yt.setVolume(+v);
+                if (+v === 0) _yt.mute(); else _yt.unMute();
+                setVolIcon(+v);
+            };
+
+            function setVolIcon(v) {
+                const ic = document.getElementById('yt-vol-icon'); if (!ic) return;
+                if (v === 0) ic.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+                else if (v < 50) ic.innerHTML = '<path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>';
+                else ic.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+            }
+
+            function qlabel(q) {
+                if (!q || q === 'auto' || q === 'default') return 'Auto';
+                if (q === 'highres') return '4K';
+                if (q.startsWith('hd')) return q.slice(2) + 'p';
+                if (q === 'large') return '480p';
+                if (q === 'medium') return '360p';
+                if (q === 'small') return '240p';
+                if (q === 'tiny') return '144p';
+                return q;
+            }
+
+            window.buildSettingsMenu = () => {
+                const sl = document.getElementById('yt-speed-list');
+                if (sl) sl.innerHTML = SPEEDS.map(s => `<div class="yt-set-opt${_curSpeed === s ? ' active' : ''}" onclick="setSpeed(${s})">${s === 1 ? 'Normal' : s + 'x'}${_curSpeed === s ? ' ✓' : ''}</div>`).join('');
+            };
+
+            window.setSpeed = s => {
+                if (!_yt) return;
+                _curSpeed = s;
+                _yt.setPlaybackRate(s);
+                buildSettingsMenu();
+                const p = document.getElementById('yt-settings-popup');
+                if (p) p.classList.remove('open');
+            };
+
+            window.toggleFullScreen = async () => {
+                const el = document.getElementById('yt-container');
+                if (!document.fullscreenElement) {
+                    try { await el.requestFullscreen(); if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => { }); } catch (_) { }
+                } else {
+                    try { await document.exitFullscreen(); if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (_) { }
+                }
+            };
+
+            document.addEventListener('keydown', e => {
+                const m = document.getElementById('yt-modal');
+                if (!m || m.style.display === 'none' || !_yt) return;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                const map = {
+                    'Space': () => { e.preventDefault(); togglePlay(); showCtrl(); },
+                    'ArrowRight': () => { e.preventDefault(); _yt.seekTo(_yt.getCurrentTime() + 5, true); showCtrl(); },
+                    'ArrowLeft': () => { e.preventDefault(); _yt.seekTo(Math.max(0, _yt.getCurrentTime() - 5), true); showCtrl(); },
+                    'ArrowUp': () => { e.preventDefault(); const v = Math.min(100, _yt.getVolume() + 10); _yt.setVolume(v); const s = document.getElementById('yt-vol-slider'); if (s) s.value = v; setVolIcon(v); showCtrl(); },
+                    'ArrowDown': () => { e.preventDefault(); const v = Math.max(0, _yt.getVolume() - 10); _yt.setVolume(v); const s = document.getElementById('yt-vol-slider'); if (s) s.value = v; setVolIcon(v); showCtrl(); },
+                    'KeyF': () => { e.preventDefault(); toggleFullScreen(); },
+                    'Escape': () => closeVideoModal(),
+                    'KeyM': () => { e.preventDefault(); toggleMute(); }
+                };
+                if (map[e.code]) map[e.code]();
+            });
+        })();
+
+        function extractYouTubeVideoId(url) {
+            const match = url.match(/(?:\?v=|youtu\.be\/|embed\/)([^&\?\/]+)/);
+            return match ? match[1] : url;
+        }
+
+        function showPlaceholder(message) {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="placeholder">
+                    <div class="placeholder-icon">📖</div>
+                    <h3>${message}</h3>
+                </div>`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadUnitContent);
+    </script>
+</body>
+
+</html>
+
+
