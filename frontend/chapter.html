@@ -390,7 +390,7 @@
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="/insforge-client.js"></script>
+    <script src="js/local-database.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const chapterId = urlParams.get('id');
@@ -410,11 +410,11 @@
 
             // Wait for SDK
             let attempts = 0;
-            while (!window.insforge && attempts < 50) {
+            while (!window.db && attempts < 50) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
-            if (!window.insforge) {
+            if (!window.db) {
                 showError("Database connection failed. Please refresh.");
                 return;
             }
@@ -424,7 +424,7 @@
 
         async function waitForInsForge() {
             let attempts = 0;
-            while (!window.insforge && attempts < 100) {
+            while (!window.db && attempts < 100) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
@@ -434,13 +434,13 @@
             try {
                 await waitForInsForge();
                 // Load chapter details using InsForge SDK
-                const { data: chapter, error: cErr } = await window.insforge.from('chapters').select('*').eq('nid', Number(chapterId)).maybeSingle();
+                const { data: chapter, error: cErr } = await window.db.from('chapters').select('*').eq('nid', Number(chapterId)).maybeSingle();
                 if (cErr || !chapter) throw new Error(cErr ? cErr.message : 'Subject not found');
 
                 document.getElementById('chapterTitle').textContent = `${chapter.name} - Select Unit:`;
 
                 // Load units for this chapter using InsForge SDK
-                const { data: units, error: uErr } = await window.insforge.from('units').select('*').eq('chapter_id', Number(chapterId)).order('order_index', { ascending: true });
+                const { data: units, error: uErr } = await window.db.from('units').select('*').eq('chapter_id', Number(chapterId)).order('order_index', { ascending: true });
                 if (uErr) throw new Error(uErr.message);
 
                 const grid = document.getElementById('unitsGrid');
@@ -462,7 +462,7 @@
                 }
 
                 // Load Subject PDFs for this chapter using InsForge SDK
-                const { data: pdfs, error: pErr } = await window.insforge.from('resources').select('*').eq('chapter_id', Number(chapterId)).order('order_index', { ascending: true });
+                const { data: pdfs, error: pErr } = await window.db.from('resources').select('*').eq('chapter_id', Number(chapterId)).order('order_index', { ascending: true });
                 if (pErr) throw pErr;
 
                 const pdfSec = document.getElementById('subjectPdfsSection');

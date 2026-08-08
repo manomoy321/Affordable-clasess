@@ -10,7 +10,6 @@
     "start": "serve ."
   },
   "dependencies": {
-    "@insforge/sdk": "^0.1.0",
     "serve": "^14.2.6",
     "vite": "^6.0.0"
   }

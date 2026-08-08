@@ -223,12 +223,12 @@
         try {
             // Wait for insforge to be available (max 5 seconds)
             let attempts = 0;
-            while (typeof insforge === 'undefined' && attempts < 50) {
+            while (typeof db === 'undefined' && attempts < 50) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 attempts++;
             }
 
-            if (typeof insforge === 'undefined') {
+            if (typeof db === 'undefined') {
                 console.warn('InsForge SDK not loaded within timeout');
                 return;
             }
@@ -249,7 +249,7 @@
                         const userObj = JSON.parse(userStr);
                         if (userObj.role === 'admin') isAdmin = true;
                         if (!isAdmin) {
-                            const { data: freshUser } = await insforge.from('app_users').select('allowed_semesters').eq('user_id', userObj.user_id).maybeSingle();
+                            const { data: freshUser } = await db.from('app_users').select('allowed_semesters').eq('user_id', userObj.user_id).maybeSingle();
                             if (freshUser && freshUser.allowed_semesters) {
                                 allowedSemesters = freshUser.allowed_semesters.split(',').map(s => s.trim());
                             }

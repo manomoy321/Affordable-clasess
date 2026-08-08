@@ -927,7 +927,7 @@
     </div>
 
     <!-- JAVASCRIPT -->
-    <script type="module" src="/insforge-client.js"></script>
+    <script src="js/local-database.js"></script>
     <script type="module">
         // Auth check
         const userStr = localStorage.getItem('user');
@@ -965,11 +965,11 @@
 
         async function waitForInsForge() {
             let attempts = 0;
-            while (!window.insforge && attempts < 150) {
+            while (!window.db && attempts < 150) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
-            if (!window.insforge) console.warn("InsForge SDK timeout");
+            if (!window.db) console.warn("InsForge SDK timeout");
         }
 
         window.toggleSidebar = () => {
@@ -983,8 +983,8 @@
         window.loadSemesters = async function () {
             try {
                 await waitForInsForge();
-                if (!window.insforge) return;
-                const { data: sems, error } = await window.insforge.from('semesters').select('*');
+                if (!window.db) return;
+                const { data: sems, error } = await window.db.from('semesters').select('*');
                 if (error) throw error;
                 allSemesters = sems || [];
                 const tbody = document.getElementById('semestersBody');
@@ -1038,9 +1038,9 @@
                 await waitForInsForge();
                 const data = { name, thumbnail: thumbnail || null };
                 if (id) {
-                    await window.insforge.from('semesters').update(data).eq('nid', id);
+                    await window.db.from('semesters').update(data).eq('nid', id);
                 } else {
-                    await window.insforge.from('semesters').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                    await window.db.from('semesters').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
                 }
                 showNotification('Saved'); closeSemesterModal(); loadSemesters();
             } catch (ex) { showNotification(ex.message, true); }
@@ -1049,7 +1049,7 @@
         window.deleteSemester = async (id) => {
             if (!confirm('Delete?')) return;
             await waitForInsForge();
-            const { error } = await window.insforge.from('semesters').delete().eq('nid', id);
+            const { error } = await window.db.from('semesters').delete().eq('nid', id);
             if (error) showNotification(error.message, true);
             else {
                 loadSemesters();
@@ -1096,7 +1096,7 @@
         window.loadChapters = async () => {
             try {
                 await waitForInsForge();
-                const { data: chapters, error } = await window.insforge.from('chapters').select('*');
+                const { data: chapters, error } = await window.db.from('chapters').select('*');
                 if (error) throw error;
                 allChapters = chapters || [];
 
@@ -1163,7 +1163,7 @@
             try {
                 await waitForInsForge();
                 for (const id of ids) {
-                    const { error } = await window.insforge.from('chapters').update({ semester: semester }).eq('nid', id);
+                    const { error } = await window.db.from('chapters').update({ semester: semester }).eq('nid', id);
                     if (error) throw error;
                 }
                 showNotification(`Assigned ${ids.length} chapters`);
@@ -1210,7 +1210,7 @@
         window.editChapter = async (id) => {
             try {
                 await waitForInsForge();
-                const { data: c, error } = await window.insforge.from('chapters').select('*').eq('nid', id).maybeSingle();
+                const { data: c, error } = await window.db.from('chapters').select('*').eq('nid', id).maybeSingle();
                 if (error || !c) throw new Error(error ? error.message : 'Chapter not found');
                 openChapterModal(id);
                 document.getElementById('chapterName').value = c.name;
@@ -1231,9 +1231,9 @@
             try {
                 await waitForInsForge();
                 if (orig) {
-                    await window.insforge.from('chapters').update(data).eq('nid', Number(orig));
+                    await window.db.from('chapters').update(data).eq('nid', Number(orig));
                 } else {
-                    await window.insforge.from('chapters').insert({ ...data, nid: Number(chapterIdValue) });
+                    await window.db.from('chapters').insert({ ...data, nid: Number(chapterIdValue) });
                 }
                 closeChapterModal(); loadChapters();
                 showNotification('Subject saved!');
@@ -1243,7 +1243,7 @@
         window.deleteChapter = async (id) => {
             if (confirm('Delete subject and all its units?')) {
                 await waitForInsForge();
-                await window.insforge.from('chapters').delete().eq('nid', id);
+                await window.db.from('chapters').delete().eq('nid', id);
                 loadChapters();
             }
         };
@@ -1262,12 +1262,12 @@
 
             try {
                 await waitForInsForge();
-                const { data: units, error } = await window.insforge.from('units').select('*').eq('chapter_id', Number(cid)).order('order_index', { ascending: true });
+                const { data: units, error } = await window.db.from('units').select('*').eq('chapter_id', Number(cid)).order('order_index', { ascending: true });
                 if (error) throw error;
 
                 // Get video counts from SDK
                 const unitsWithCounts = await Promise.all(units.map(async u => {
-                    const { data: vids } = await window.insforge.from('videos').select('nid', { count: 'exact' }).eq('unit_id', Number(u.nid));
+                    const { data: vids } = await window.db.from('videos').select('nid', { count: 'exact' }).eq('unit_id', Number(u.nid));
                     return { ...u, vCount: vids ? vids.length : 0 };
                 }));
 
@@ -1301,7 +1301,7 @@
         window.editUnit = async (id) => {
             try {
                 await waitForInsForge();
-                const { data: u, error } = await window.insforge.from('units').select('*').eq('nid', id).maybeSingle();
+                const { data: u, error } = await window.db.from('units').select('*').eq('nid', id).maybeSingle();
                 if (error || !u) throw new Error(error ? error.message : 'Unit not found');
 
                 openUnitModal(id);
@@ -1321,9 +1321,9 @@
             try {
                 await waitForInsForge();
                 if (id) {
-                    await window.insforge.from('units').update(data).eq('nid', Number(id));
+                    await window.db.from('units').update(data).eq('nid', Number(id));
                 } else {
-                    await window.insforge.from('units').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                    await window.db.from('units').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
                 }
                 closeUnitModal(); loadUnits();
                 showNotification('Unit saved!');
@@ -1333,7 +1333,7 @@
         window.deleteUnit = async (id) => {
             if (confirm('Delete unit and all its content?')) {
                 await waitForInsForge();
-                await window.insforge.from('units').delete().eq('nid', id);
+                await window.db.from('units').delete().eq('nid', id);
                 loadUnits();
             }
         };
@@ -1342,7 +1342,7 @@
         window.loadUsers = async () => {
             try {
                 await waitForInsForge();
-                const { data: users, error } = await window.insforge.from('app_users').select('*');
+                const { data: users, error } = await window.db.from('app_users').select('*');
                 if (error) throw error;
                 window._users_cache = users;
                 const tbody = document.getElementById('usersBody');
@@ -1426,7 +1426,7 @@
                 await waitForInsForge();
 
                 // Use the RPC for both INSERT and UPDATE to handle password hashing
-                const { data: res, error } = await window.insforge.rpc('save_user', {
+                const { data: res, error } = await window.db.rpc('save_user', {
                     p_nid: id ? Number(id) : Math.floor(Date.now() / 1000),
                     p_user_id: userId,
                     p_name: name,
@@ -1450,7 +1450,7 @@
         window.deleteUser = async (id, uid) => {
             if (confirm(`Delete ${uid}?`)) {
                 await waitForInsForge();
-                await window.insforge.from('app_users').delete().eq('nid', Number(id));
+                await window.db.from('app_users').delete().eq('nid', Number(id));
                 loadUsers();
             }
         };
@@ -1459,8 +1459,8 @@
         window.loadLoginRequests = async () => {
             try {
                 await waitForInsForge();
-                if (!window.insforge) return;
-                const { data: reqs, error } = await window.insforge.from('login_requests').select('*');
+                if (!window.db) return;
+                const { data: reqs, error } = await window.db.from('login_requests').select('*');
                 if (error) throw error;
                 const tbody = document.getElementById('loginRequestsBody');
                 const badge = document.getElementById('requestsBadge');
@@ -1482,10 +1482,10 @@
         window.approveRequest = async (id) => {
             try {
                 await waitForInsForge();
-                const { data: r, error: gErr } = await window.insforge.from('login_requests').select('*').eq('nid', Number(id)).maybeSingle();
+                const { data: r, error: gErr } = await window.db.from('login_requests').select('*').eq('nid', Number(id)).maybeSingle();
                 if (gErr || !r) throw new Error(gErr ? gErr.message : 'Request not found');
                 // 2. Create user via RPC for secure password hashing
-                const { data: res, error: rpcErr } = await window.insforge.rpc('save_user', {
+                const { data: res, error: rpcErr } = await window.db.rpc('save_user', {
                     p_nid: Math.floor(Date.now() / 1000),
                     p_user_id: r.user_id,
                     p_name: r.user_name || r.user_id,
@@ -1498,7 +1498,7 @@
                 if (res && res.success === false) throw new Error(res.message);
 
                 // 3. Delete request
-                await window.insforge.from('login_requests').delete().eq('nid', Number(id));
+                await window.db.from('login_requests').delete().eq('nid', Number(id));
 
                 loadLoginRequests();
                 showNotification('User approved!');
@@ -1508,7 +1508,7 @@
             if (confirm('Reject this request?')) {
                 try {
                     await waitForInsForge();
-                    await window.insforge.from('login_requests').delete().eq('nid', Number(id));
+                    await window.db.from('login_requests').delete().eq('nid', Number(id));
                     loadLoginRequests();
                     showNotification('Request rejected');
                 } catch (err) { showNotification(err.message, true); }
@@ -1580,7 +1580,7 @@
         window.loadVideos = async () => {
             try {
                 await waitForInsForge();
-                const { data: vids, error } = await window.insforge.from('videos').select('*').eq('unit_id', Number(currentUnitIdVal)).order('order_index', { ascending: true });
+                const { data: vids, error } = await window.db.from('videos').select('*').eq('unit_id', Number(currentUnitIdVal)).order('order_index', { ascending: true });
                 if (error) throw error;
                 _allCurrentVideos = vids || [];
                 const tb = document.getElementById('videosTableBody');
@@ -1621,12 +1621,12 @@
             try {
                 await waitForInsForge();
                 if (id) {
-                    const { error } = await window.insforge.from('videos').update(data).eq('nid', Number(id));
+                    const { error } = await window.db.from('videos').update(data).eq('nid', Number(id));
                     if (error) throw error;
                     closeVideoModal(); loadVideos();
                     showNotification('Video updated!');
                 } else {
-                    const { error } = await window.insforge.from('videos').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                    const { error } = await window.db.from('videos').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
                     if (error) throw error;
                     closeVideoModal(); loadVideos();
                     showNotification('Video added!');
@@ -1635,14 +1635,14 @@
                     try {
                         const unitLink = `unit.html?id=${data.unit_id}`;
                         let semesterName = null;
-                        const { data: uData } = await window.insforge.from('units').select('chapter_id').eq('nid', Number(data.unit_id)).maybeSingle();
+                        const { data: uData } = await window.db.from('units').select('chapter_id').eq('nid', Number(data.unit_id)).maybeSingle();
                         if (uData && uData.chapter_id) {
-                            const { data: cData } = await window.insforge.from('chapters').select('semester').eq('nid', Number(uData.chapter_id)).maybeSingle();
+                            const { data: cData } = await window.db.from('chapters').select('semester').eq('nid', Number(uData.chapter_id)).maybeSingle();
                             if (cData && cData.semester) {
                                 semesterName = cData.semester;
                             }
                         }
-                        await window.insforge.from('notifications').insert({
+                        await window.db.from('notifications').insert({
                             message: `📺 New video added: "${escapeHtml(data.title)}"`,
                             link: unitLink,
                             semester: semesterName
@@ -1662,7 +1662,7 @@
         window.deleteVideo = async (id) => {
             if (confirm('Delete video?')) {
                 await waitForInsForge();
-                const { error } = await window.insforge.from('videos').delete().eq('nid', Number(id));
+                const { error } = await window.db.from('videos').delete().eq('nid', Number(id));
                 if (error) throw error;
                 loadVideos();
             }
@@ -1673,7 +1673,7 @@
         window.loadResources = async () => {
             try {
                 await waitForInsForge();
-                const { data: resources, error } = await window.insforge.from('resources').select('*').eq('unit_id', Number(currentUnitIdVal)).order('order_index', { ascending: true });
+                const { data: resources, error } = await window.db.from('resources').select('*').eq('unit_id', Number(currentUnitIdVal)).order('order_index', { ascending: true });
                 if (error) throw error;
                 const tb = document.getElementById('resourcesTableBody');
                 if (!resources || !resources.length) {
@@ -1719,11 +1719,11 @@
             try {
                 await waitForInsForge();
                 if (id) {
-                    const { error } = await window.insforge.from('resources').update(data).eq('nid', Number(id));
+                    const { error } = await window.db.from('resources').update(data).eq('nid', Number(id));
                     if (error) throw error;
                     showNotification('Resource saved!');
                 } else {
-                    const { error } = await window.insforge.from('resources').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
+                    const { error } = await window.db.from('resources').insert({ ...data, nid: Math.floor(Date.now() / 1000) });
                     if (error) throw error;
                     showNotification('Resource added!');
                 }
@@ -1738,7 +1738,7 @@
         window.deleteResource = async (id) => {
             if (confirm('Delete resource?')) {
                 await waitForInsForge();
-                const { error } = await window.insforge.from('resources').delete().eq('nid', Number(id));
+                const { error } = await window.db.from('resources').delete().eq('nid', Number(id));
                 if (error) throw error;
                 loadResources();
             }
@@ -1757,7 +1757,7 @@
             addPdfBtn.disabled = false;
             try {
                 await waitForInsForge();
-                const { data: pdfs, error } = await window.insforge.from('resources').select('*').eq('chapter_id', Number(cid)).order('order_index', { ascending: true });
+                const { data: pdfs, error } = await window.db.from('resources').select('*').eq('chapter_id', Number(cid)).order('order_index', { ascending: true });
                 if (error) throw error;
                 if (!pdfs || !pdfs.length) {
                     tbody.innerHTML = '<tr><td colspan="2" class="empty-state">No PDFs found</td></tr>';
@@ -1791,7 +1791,7 @@
         window.editChapterPdf = async (id) => {
             try {
                 await waitForInsForge();
-                const { data: res, error } = await window.insforge.from('resources').select('*').eq('nid', Number(id)).maybeSingle();
+                const { data: res, error } = await window.db.from('resources').select('*').eq('nid', Number(id)).maybeSingle();
                 if (error || !res) throw new Error(error ? error.message : 'PDF not found');
                 
                 document.getElementById('resourceModal').style.display = 'flex';
@@ -1809,7 +1809,7 @@
         window.deleteChapterPdf = async (id) => {
             if (confirm('Delete subject PDF?')) {
                 await waitForInsForge();
-                const { error } = await window.insforge.from('resources').delete().eq('nid', Number(id));
+                const { error } = await window.db.from('resources').delete().eq('nid', Number(id));
                 if (error) throw error;
                 loadChapterPdfs();
             }

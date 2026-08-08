@@ -16,8 +16,7 @@
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@insforge/sdk@latest/+esm">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -424,7 +423,7 @@
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="/insforge-client.js"></script>
+    <script src="js/local-database.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const unitId = urlParams.get('id') || urlParams.get('unitId');
@@ -448,7 +447,7 @@
 
         async function waitForInsForge() {
             let attempts = 0;
-            while (!window.insforge && attempts < 100) {
+            while (!window.db && attempts < 100) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
@@ -462,15 +461,15 @@
 
             try {
                 await waitForInsForge();
-                if (!window.insforge) {
+                if (!window.db) {
                     showPlaceholder("Database connection failed. Please refresh.");
                     return;
                 }
 
                 // Fetch videos and resources from InsForge SDK
                 const [{ data: videos, error: vErr }, { data: resources, error: rErr }] = await Promise.all([
-                    window.insforge.from('videos').select('*').eq('unit_id', Number(unitId)).order('order_index', { ascending: true }),
-                    window.insforge.from('resources').select('*').eq('unit_id', Number(unitId)).order('order_index', { ascending: true })
+                    window.db.from('videos').select('*').eq('unit_id', Number(unitId)).order('order_index', { ascending: true }),
+                    window.db.from('resources').select('*').eq('unit_id', Number(unitId)).order('order_index', { ascending: true })
                 ]);
 
                 if (vErr) throw vErr;

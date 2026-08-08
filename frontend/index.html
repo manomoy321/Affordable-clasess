@@ -18,8 +18,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://esm.sh">
-    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@insforge/sdk@latest/+esm">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -877,7 +876,7 @@
     </div>
 
     <!-- InsForge JS Dependency -->
-    <script type="module" src="/insforge-client.js"></script>
+    <script src="js/local-database.js"></script>
     <script>
         let allChapters = [];
         let allSemesters = [];
@@ -931,13 +930,13 @@
 
                 try {
                     let attempts = 0;
-                    while (!window.insforge && attempts < 50) {
+                    while (!window.db && attempts < 50) {
                         await new Promise(r => setTimeout(r, 100));
                         attempts++;
                     }
-                    if (!window.insforge) return; // InsForge unavailable — don't log out
+                    if (!window.db) return; // InsForge unavailable — don't log out
 
-                    const { data } = await window.insforge.rpc('verify_session', {
+                    const { data } = await window.db.rpc('verify_session', {
                         p_user_id: user.user_id,
                         p_session_token: token
                     });
@@ -962,11 +961,11 @@
 
         async function waitForInsForge() {
             let attempts = 0;
-            while (!window.insforge && attempts < 100) {
+            while (!window.db && attempts < 100) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
-            if (!window.insforge) throw new Error("InsForge SDK failed to load");
+            if (!window.db) throw new Error("InsForge SDK failed to load");
         }
 
         async function loadChapters() {
@@ -984,7 +983,7 @@
 
                 // Fetch fresh user data to see their allowed_semesters
                 if (userObj && !isAdmin) {
-                    const { data: allUsers, error: uErr } = await window.insforge.from('app_users').select('*');
+                    const { data: allUsers, error: uErr } = await window.db.from('app_users').select('*');
                     if (uErr) {
                         console.error("Error fetching users from InsForge:", uErr);
                     } else {
@@ -997,7 +996,7 @@
 
                 // If NOT drilled down, fetch and show Semesters (Level 1)
                 if (!currentSemesterFilter) {
-                    const { data: sems, error: sErr } = await window.insforge.from('semesters').select('*');
+                    const { data: sems, error: sErr } = await window.db.from('semesters').select('*');
                     if (sErr) throw sErr;
 
                     if (isAdmin) {
@@ -1013,7 +1012,7 @@
                 document.getElementById('backToSemestersBtn').style.display = 'inline-flex';
                 document.querySelector('.page-title').textContent = currentSemesterFilter;
 
-                const { data: chapters, error: cErr } = await window.insforge.from('chapters').select('*');
+                const { data: chapters, error: cErr } = await window.db.from('chapters').select('*');
                 if (cErr) throw cErr;
 
                 if (isAdmin) {

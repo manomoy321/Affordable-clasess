@@ -491,7 +491,7 @@
         typeLoop();
     </script>
 
-    <script type="module" src="/insforge-client.js"></script>
+    <script src="js/local-database.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const redirectUrl = urlParams.get('redirect') || 'index.html';
@@ -518,16 +518,16 @@
                 errorMsg.style.display = 'none';
 
                 let attempts = 0;
-                while (!window.insforge && attempts < 150) {
+                while (!window.db && attempts < 150) {
                     await new Promise(r => setTimeout(r, 100));
                     attempts++;
                 }
 
-                if (!window.insforge) {
+                if (!window.db) {
                     throw new Error("Authentication service connection failed. Please check your internet or refresh.");
                 }
 
-                const { data: result, error } = await window.insforge.rpc('login_user', {
+                const { data: result, error } = await window.db.rpc('login_user', {
                     login_user_id: userId,
                     login_password: password
                 });
@@ -537,7 +537,7 @@
                 if (result.limit_reached) {
                     // RECORD THE REQUEST IN THE DATABASE
                     try {
-                        await window.insforge.from('login_requests').insert({
+                        await window.db.from('login_requests').insert({
                             nid: Math.floor(Date.now() / 1000),
                             user_id: userId,
                             user_name: userId,
