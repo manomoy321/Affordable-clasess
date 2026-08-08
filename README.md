@@ -17,9 +17,6 @@ Welcome to the **AJC Platform**, a modern, offline-capable learning management s
 
 The front-facing website is designed with a heavy focus on student experience. It features a beautiful, clean UI with dynamic light and dark mode toggling.
 
-🔗 **Quick Links:**
-- **[Home Page](frontend/index.html)**
-- **[Login Page](frontend/login.html)**
 
 <div align="center">
   <h3>Student Dashboard</h3>
@@ -41,8 +38,6 @@ The front-facing website is designed with a heavy focus on student experience. I
 
 The administrative backend of the platform is built for complete control over the learning experience.
 
-🔗 **Quick Link:**
-- **[Admin Dashboard](frontend/admin.html)**
 
 <div align="center">
   <img src="assets/admin.png" alt="AJC Platform Admin Panel" width="800"/>
