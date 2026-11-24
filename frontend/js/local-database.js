@@ -76,10 +76,31 @@ function createLocalDatabase() {
             };
         },
         rpc: (fn, args) => {
-            if (fn === 'login_user' || fn === 'verify_session') {
-                return Promise.resolve({ data: { user_id: 'admin_1', role: 'admin' }, error: null });
+            if (fn === 'login_user') {
+                return Promise.resolve({
+                    data: {
+                        success: true,
+                        session_token: 'local-session-' + Date.now(),
+                        session: {
+                            user: {
+                                id: 'local-user-1',
+                                user_id: (args && args.login_user_id) || 'admin',
+                                name: (args && args.login_user_id) || 'Admin',
+                                role: 'admin',
+                                allowed_semesters: 'all'
+                            }
+                        }
+                    },
+                    error: null
+                });
             }
-            return Promise.resolve({ data: true, error: null });
+            if (fn === 'verify_session') {
+                return Promise.resolve({ data: { valid: true }, error: null });
+            }
+            if (fn === 'save_user') {
+                return Promise.resolve({ data: { success: true }, error: null });
+            }
+            return Promise.resolve({ data: { success: true }, error: null });
         },
         channel: (name) => {
             return {
